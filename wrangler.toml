@@ -1,0 +1,48 @@
+name = "soccer-predictor-odds-collector"
+main = "src/worker/index.ts"
+compatibility_date = "2025-11-07"
+compatibility_flags = ["nodejs_compat"]
+
+# Cron triggers for automated collection
+[triggers]
+crons = [
+  "0 6 * * *",        # Daily discovery: Find upcoming matches (FREE - uses events endpoint)
+  "*/15 * * * *"      # Execute collection jobs every 15 minutes (ensures closing line accuracy)
+]
+
+# R2 bucket binding for odds data storage
+[[r2_buckets]]
+binding = "ODDS_BUCKET"
+bucket_name = "soccer-predictor"
+
+[[d1_databases]]
+binding = "odds_collector_db"
+database_name = "odds-collector-db"
+database_id = "5ad1cd7e-cfc9-4010-b272-c91c82c7f651"
+
+# Environment variables
+[vars]
+TIMING_PRESET = "COMPREHENSIVE"  # MINIMAL | BASIC | STANDARD | COMPREHENSIVE
+# Active leagues for odds collection
+LEAGUES = '["england_premier_league","italy_serie_a"]'
+
+# Secrets (set via: wrangler secret put <NAME>)
+# - ODDS_API_KEY: The Odds API key
+# - R2_ACCOUNT_ID: Cloudflare account ID for R2
+# - R2_ACCESS_KEY_ID: R2 access key ID
+# - R2_SECRET_ACCESS_KEY: R2 secret access key
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
