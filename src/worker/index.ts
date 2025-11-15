@@ -118,11 +118,68 @@ export default {
 
       // Build indexes for all leagues
       const indexBuilder = new IndexBuilder({ storage: collector["storage"] });
+      const storage = collector["storage"];
+      const scheduler = collector["scheduler"];
+
       for (const leagueId of leagueIds) {
         const season = inferCurrentSeason();
         try {
+          // Step 1: Get completed jobs for this league
+          const completedJobs = await scheduler.getCompletedJobs(leagueId);
+
+          if (completedJobs.length > 0) {
+            console.log(`📇 Building match index from ${completedJobs.length} completed jobs for ${leagueId}/${season}...`);
+
+            // Step 2: Transform jobs into snapshot metadata for index building
+            const snapshotMetadata = await Promise.all(
+              completedJobs.map(async (job) => {
+                // Load snapshot to get markets information
+                let markets: string[] = [];
+                try {
+                  // Extract snapshot ID from path (everything after season, before .json)
+                  const pathParts = job.snapshotPath!.split('/');
+                  const snapshotId = pathParts[pathParts.length - 1].replace('.json', '');
+
+                  const snapshot = await storage.getSnapshot(
+                    leagueId,
+                    season,
+                    snapshotId
+                  );
+                  if (snapshot?.odds?.bookmakers && snapshot.odds.bookmakers.length > 0) {
+                    // Extract unique markets from bookmakers
+                    const marketsSet = new Set<string>();
+                    snapshot.odds.bookmakers.forEach(bookmaker => {
+                      bookmaker.markets.forEach(market => {
+                        marketsSet.add(market.key);
+                      });
+                    });
+                    markets = Array.from(marketsSet);
+                  }
+                } catch (error) {
+                  console.warn(`Could not load markets for ${job.snapshotPath}:`, error);
+                  // Continue with empty markets array
+                }
+
+                return {
+                  homeTeam: job.homeTeam,
+                  awayTeam: job.awayTeam,
+                  matchDate: job.matchDate,
+                  eventId: job.eventId,
+                  timing: job.timingOffset,
+                  path: job.snapshotPath!,
+                  markets,
+                  kickoffTime: job.kickoffTime,
+                };
+              })
+            );
+
+            // Step 3: Update match index with all completed snapshots
+            await indexBuilder.updateMatchIndex(leagueId, season, snapshotMetadata);
+          }
+
+          // Step 4: Build derived indexes (date, team)
           await indexBuilder.buildAllIndexes(leagueId, season);
-          console.log(`Indexes built for ${leagueId}/${season}`);
+          console.log(`✅ Indexes built for ${leagueId}/${season}`);
         } catch (error) {
           console.error(`Failed to build indexes for ${leagueId}:`, error);
           // Continue with other leagues even if one fails
