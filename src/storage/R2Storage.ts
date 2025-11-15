@@ -7,6 +7,7 @@ import {
   ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { OddsSnapshot, MatchIndex } from '../config/types';
+import { IStorage } from './IStorage';
 
 export interface R2StorageConfig {
   /**
@@ -79,7 +80,7 @@ export interface R2StorageConfig {
  * const snapshot = await storage.getSnapshot('EPL', '2024', 'match_12345');
  * ```
  */
-export class R2Storage {
+export class R2Storage implements IStorage {
   private client: S3Client;
   private bucketName: string;
   private basePath: string;

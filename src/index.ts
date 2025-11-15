@@ -13,6 +13,8 @@ export { LEAGUES, getLeagueConfig } from './config/leagues';
 export { TheOddsApiProvider, TheOddsApiConfig } from './providers/TheOddsApiProvider';
 
 // Storage
+// Note: LocalStorage is Node.js only and not exported here (Cloudflare Workers don't support fs/path)
+// Import directly from './storage/LocalStorage' if needed in Node.js scripts
 export { R2Storage, R2StorageConfig } from './storage/R2Storage';
 
 // Core

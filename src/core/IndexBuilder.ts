@@ -4,17 +4,17 @@
  * Generates index files for O(1) lookups by match, date, or team
  */
 
-import { R2Storage } from "../storage/R2Storage";
+import { IStorage } from "../storage/IStorage";
 import { MatchIndex, MatchIndexEntry } from "../config/types";
 import { generateMatchKey, formatTeamNameForPath } from "../utils/pathUtils";
 
 export interface IndexBuilderConfig {
   /** Storage backend */
-  storage: R2Storage;
+  storage: IStorage;
 }
 
 export class IndexBuilder {
-  private storage: R2Storage;
+  private storage: IStorage;
 
   constructor(config: IndexBuilderConfig) {
     this.storage = config.storage;

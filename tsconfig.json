@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "CommonJS",
     "lib": ["ES2022"],
     "types": ["@cloudflare/workers-types"],
     "outDir": "./dist",
@@ -19,5 +19,5 @@
     "noEmit": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "examples"]
+  "exclude": ["node_modules", "dist", "tests", "examples", "src/storage/LocalStorage.ts"]
 }
