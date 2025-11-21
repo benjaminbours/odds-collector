@@ -37,7 +37,6 @@ export class IndexBuilder {
       eventId: string;
       timing: string;
       path: string;
-      markets: string[];
       kickoffTime: string;
     }>
   ): Promise<void> {
@@ -70,7 +69,6 @@ export class IndexBuilder {
           matchDate: snapshot.matchDate,
           eventId: snapshot.eventId,
           snapshots: {},
-          marketsAvailable: [],
           kickoffTime: snapshot.kickoffTime,
         };
       }
@@ -79,13 +77,6 @@ export class IndexBuilder {
 
       // Add snapshot path for this timing
       entry.snapshots[snapshot.timing] = snapshot.path;
-
-      // Update available markets (union of all markets)
-      for (const market of snapshot.markets) {
-        if (!entry.marketsAvailable.includes(market)) {
-          entry.marketsAvailable.push(market);
-        }
-      }
     }
 
     // Update timestamp

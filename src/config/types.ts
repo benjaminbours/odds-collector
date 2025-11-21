@@ -199,8 +199,6 @@ export interface MatchIndexEntry {
   eventId: string;
   /** Available snapshots (timing -> file path) */
   snapshots: Record<string, string>;
-  /** Available markets */
-  marketsAvailable: string[];
   /** Kickoff time */
   kickoffTime: string;
 }
