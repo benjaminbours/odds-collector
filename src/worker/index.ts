@@ -69,8 +69,13 @@ export default {
   ): Promise<void> {
     console.log(
       "Odds collection worker triggered:",
-      new Date(event.scheduledTime)
+      new Date(event.scheduledTime),
+      "Cron:",
+      event.cron
     );
+
+    // Determine if this is a discovery run (6 AM) or execution run (every 15 min)
+    const isDiscoveryRun = event.cron === "0 6 * * *";
 
     try {
       // Parse league configuration from environment variable
@@ -92,6 +97,7 @@ export default {
         timings:
           TimingPresets[env.TIMING_PRESET] || TimingPresets.COMPREHENSIVE,
         db: env.odds_collector_db, // Use D1 database binding
+        enableDiscovery: isDiscoveryRun, // Only enable discovery on 6 AM run
       });
 
       // Add all configured leagues with team name normalization
@@ -133,15 +139,15 @@ export default {
 
             // Step 2: Transform jobs into snapshot metadata for index building
             const snapshotsMetadata = completedJobs.map((job) => {
-                return {
-                  homeTeam: job.homeTeam,
-                  awayTeam: job.awayTeam,
-                  matchDate: job.matchDate,
-                  eventId: job.eventId,
-                  timing: job.timingOffset,
-                  path: job.snapshotPath!,
-                  kickoffTime: job.kickoffTime,
-                };
+              return {
+                homeTeam: job.homeTeam,
+                awayTeam: job.awayTeam,
+                matchDate: job.matchDate,
+                eventId: job.eventId,
+                timing: job.timingOffset,
+                path: job.snapshotPath!,
+                kickoffTime: job.kickoffTime,
+              };
             });
 
             // Step 3: Update match index with all completed snapshots
