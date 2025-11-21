@@ -4,21 +4,20 @@
  * Coordinates event discovery, job scheduling, and execution
  */
 
-import { TheOddsApiProvider } from '../providers/TheOddsApiProvider';
-import { R2Storage } from '../storage/R2Storage';
-import { JobScheduler } from './JobScheduler';
+import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
+import { R2Storage } from "../storage/R2Storage";
+import { JobScheduler } from "./JobScheduler";
 import {
   LeagueConfig,
   TimingOffset,
   OddsSnapshot,
   CollectionMetrics,
-} from '../config/types';
+} from "../config/types";
 import {
-  generateSnapshotPath,
   generateJobId,
   calculateScheduledTime,
   inferSeasonFromDate,
-} from '../utils/pathUtils';
+} from "../utils/pathUtils";
 
 export interface OddsCollectorConfig {
   /** Odds provider instance */
@@ -97,27 +96,29 @@ export class OddsCollector {
    * 3. Record metrics
    */
   async run(): Promise<void> {
-    console.log('🚀 Odds Collector starting...');
+    console.log("🚀 Odds Collector starting...");
     console.log(`📊 Configured leagues: ${this.leagues.size}`);
-    console.log(`⏰ Timing offsets: ${this.timings.map(t => t.name).join(', ')}`);
+    console.log(
+      `⏰ Timing offsets: ${this.timings.map((t) => t.name).join(", ")}`
+    );
 
     const startTime = Date.now();
 
     // Phase 1: Event Discovery
     if (this.enableDiscovery) {
-      console.log('\n📡 Phase 1: Event Discovery');
+      console.log("\n📡 Phase 1: Event Discovery");
       await this.discoverEvents();
     } else {
-      console.log('\n⏭️  Phase 1: Event Discovery (disabled)');
+      console.log("\n⏭️  Phase 1: Event Discovery (disabled)");
     }
 
     // Phase 2: Job Execution
-    console.log('\n⚙️  Phase 2: Job Execution');
+    console.log("\n⚙️  Phase 2: Job Execution");
     await this.executeJobs();
 
     // Phase 3: Summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log('\n📊 Summary:');
+    console.log("\n📊 Summary:");
     const summary = await this.scheduler.getSummary();
     console.log(`  ✅ Completed jobs: ${summary.totalCompleted}`);
     console.log(`  ⏳ Pending jobs: ${summary.totalPending}`);
@@ -128,7 +129,7 @@ export class OddsCollector {
       console.log(`  📅 Next job: ${summary.nextJobTime}`);
     }
 
-    console.log('\n✅ Odds Collector finished!');
+    console.log("\n✅ Odds Collector finished!");
   }
 
   /**
@@ -136,11 +137,6 @@ export class OddsCollector {
    */
   private async discoverEvents(): Promise<void> {
     const now = new Date();
-    // const futureDate = new Date(now.getTime() + this.discoveryDaysAhead * 24 * 60 * 60 * 1000);
-
-    // const commenceTimeFrom = now.toISOString();
-    // const commenceTimeTo = futureDate.toISOString();
-
     let totalEventsFound = 0;
     let totalJobsScheduled = 0;
 
@@ -148,18 +144,14 @@ export class OddsCollector {
       try {
         console.log(`\n  🔍 Discovering events for ${leagueId}...`);
 
-        const events = await this.provider.fetchEvents(
-          league.providerKey,
-          // commenceTimeFrom,
-          // commenceTimeTo
-        );
+        const events = await this.provider.fetchEvents(league.providerKey);
 
         console.log(`     Found ${events.length} upcoming events`);
         totalEventsFound += events.length;
 
         // Schedule jobs for each event at each timing offset
         for (const event of events) {
-          const matchDate = event.commenceTime.split('T')[0];
+          const matchDate = event.commenceTime.split("T")[0];
 
           // Apply team name normalization if provided
           const homeTeam = league.normalizeTeamName
@@ -177,6 +169,11 @@ export class OddsCollector {
 
             // Skip if already past the scheduled time
             if (new Date(scheduledTime) < now) {
+              console.log("Job past scheduled time, skipped: ", {
+                homeTeam,
+                awayTeam,
+                date: event.commenceTime,
+              });
               continue;
             }
 
@@ -185,6 +182,7 @@ export class OddsCollector {
             // Check if job already exists
             const existingJob = await this.scheduler.getJob(jobId);
             if (existingJob) {
+              console.log("Job already scheduled:", jobId);
               continue; // Already scheduled
             }
 
@@ -208,7 +206,10 @@ export class OddsCollector {
         // Rate limiting between leagues
         await this.delay(this.requestDelay);
       } catch (error) {
-        console.error(`     ❌ Failed to discover events for ${leagueId}:`, error);
+        console.error(
+          `     ❌ Failed to discover events for ${leagueId}:`,
+          error
+        );
       }
     }
 
@@ -222,10 +223,13 @@ export class OddsCollector {
    */
   private async executeJobs(): Promise<void> {
     // Get jobs due in the next 5 minutes (allows for clock drift)
-    const dueJobs = await this.scheduler.getJobsDueWithin(5, this.maxJobsPerRun);
+    const dueJobs = await this.scheduler.getJobsDueWithin(
+      5,
+      this.maxJobsPerRun
+    );
 
     if (dueJobs.length === 0) {
-      console.log('  ℹ️  No jobs due for execution');
+      console.log("  ℹ️  No jobs due for execution");
       return;
     }
 
@@ -235,10 +239,12 @@ export class OddsCollector {
 
     for (const job of dueJobs) {
       try {
-        console.log(`\n  ⚙️  Executing: ${job.homeTeam} vs ${job.awayTeam} (${job.timingOffset})`);
+        console.log(
+          `\n  ⚙️  Executing: ${job.homeTeam} vs ${job.awayTeam} (${job.timingOffset})`
+        );
 
         // Mark as running
-        await this.scheduler.updateJobStatus(job.id, 'running');
+        await this.scheduler.updateJobStatus(job.id, "running");
 
         // Get league config
         const league = this.leagues.get(job.leagueId);
@@ -247,7 +253,7 @@ export class OddsCollector {
         }
 
         // Get timing config
-        const timing = this.timings.find(t => t.name === job.timingOffset);
+        const timing = this.timings.find((t) => t.name === job.timingOffset);
         if (!timing) {
           throw new Error(`Timing config not found: ${job.timingOffset}`);
         }
@@ -267,7 +273,7 @@ export class OddsCollector {
             date: job.matchDate,
             league: job.leagueId,
             season,
-            collectionMethod: 'event_based',
+            collectionMethod: "event_based",
             snapshotTiming: job.timingOffset,
             eventMetadata: {
               eventId: job.eventId,
@@ -278,26 +284,19 @@ export class OddsCollector {
         };
 
         // Save snapshot (storage implementation will handle path generation)
-        await this.storage.saveSnapshot(job.leagueId, season, snapshot);
-
-        // Generate path for tracking/logging
-        const snapshotPath = generateSnapshotPath(
+        const snapshotPath = await this.storage.saveSnapshot(
           job.leagueId,
           season,
-          job.timingOffset,
-          job.matchDate,
-          job.homeTeam,
-          job.awayTeam,
-          job.eventId
+          snapshot
         );
 
         // Mark as completed
-        await this.scheduler.updateJobStatus(job.id, 'completed', snapshotPath);
+        await this.scheduler.updateJobStatus(job.id, "completed", snapshotPath);
 
         console.log(`     ✅ Saved to: ${snapshotPath}`);
 
         // Update metrics
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const metricsKey = `${job.leagueId}_${today}`;
 
         if (!metricsMap.has(metricsKey)) {
@@ -317,24 +316,31 @@ export class OddsCollector {
         metrics.apiRequests++;
 
         // Estimate cost
-        const marketCount = timing.markets.split(',').length;
-        metrics.apiCostTokens += this.provider.estimateCost('live_odds', marketCount, 1);
+        const marketCount = timing.markets.split(",").length;
+        metrics.apiCostTokens += this.provider.estimateCost(
+          "live_odds",
+          marketCount,
+          1
+        );
 
         // Rate limiting
         await this.delay(this.requestDelay);
       } catch (error) {
-        console.error(`     ❌ Failed:`, error instanceof Error ? error.message : error);
+        console.error(
+          `     ❌ Failed:`,
+          error instanceof Error ? error.message : error
+        );
 
         // Mark as failed
         await this.scheduler.updateJobStatus(
           job.id,
-          'failed',
+          "failed",
           undefined,
           error instanceof Error ? error.message : String(error)
         );
 
         // Update metrics
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const metricsKey = `${job.leagueId}_${today}`;
 
         if (!metricsMap.has(metricsKey)) {
@@ -364,16 +370,27 @@ export class OddsCollector {
 
     console.log(`\n  📊 Execution Summary:`);
     console.log(`     Jobs processed: ${dueJobs.length}`);
-    console.log(`     Succeeded: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.jobsCompleted, 0)}`);
-    console.log(`     Failed: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.jobsFailed, 0)}`);
-    console.log(`     API requests: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.apiRequests, 0)}`);
-    console.log(`     Estimated cost: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.apiCostTokens, 0)} tokens`);
+    console.log(
+      `     Succeeded: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.jobsCompleted, 0)}`
+    );
+    console.log(
+      `     Failed: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.jobsFailed, 0)}`
+    );
+    console.log(
+      `     API requests: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.apiRequests, 0)}`
+    );
+    console.log(
+      `     Estimated cost: ${Array.from(metricsMap.values()).reduce((sum, m) => sum + m.apiCostTokens, 0)} tokens`
+    );
   }
 
   /**
    * Get collection metrics for a date range
    */
-  async getMetrics(startDate: string, endDate: string): Promise<CollectionMetrics[]> {
+  async getMetrics(
+    startDate: string,
+    endDate: string
+  ): Promise<CollectionMetrics[]> {
     return await this.scheduler.getMetrics(startDate, endDate);
   }
 
@@ -395,6 +412,6 @@ export class OddsCollector {
    * Delay helper for rate limiting
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

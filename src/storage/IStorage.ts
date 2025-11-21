@@ -12,7 +12,7 @@ export interface IStorage {
     leagueId: string,
     season: string,
     snapshot: OddsSnapshot
-  ): Promise<void>;
+  ): Promise<string>;
 
   /**
    * Get odds snapshot
