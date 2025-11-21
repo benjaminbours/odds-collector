@@ -11,36 +11,6 @@ export function formatTeamNameForPath(teamName: string): string {
 }
 
 /**
- * Generate snapshot file path
- *
- * Pattern: {league}/{season}/snapshots/{timing}/{date}/{homeTeam}_vs_{awayTeam}_{eventIdShort}.json
- *
- * @param leagueId League identifier
- * @param season Season (e.g., '2024-2025')
- * @param timing Timing name (e.g., 'opening', 'closing')
- * @param date Match date (YYYY-MM-DD)
- * @param homeTeam Home team name
- * @param awayTeam Away team name
- * @param eventId Event ID
- * @returns Relative path for snapshot file
- */
-export function generateSnapshotPath(
-  leagueId: string,
-  season: string,
-  timing: string,
-  date: string,
-  homeTeam: string,
-  awayTeam: string,
-  eventId: string
-): string {
-  const home = formatTeamNameForPath(homeTeam);
-  const away = formatTeamNameForPath(awayTeam);
-  const shortEventId = eventId.slice(0, 7);
-
-  return `${leagueId}/${season}/snapshots/${timing}/${date}/${home}_vs_${away}_${shortEventId}.json`;
-}
-
-/**
  * Generate index file path
  *
  * @param leagueId League identifier
