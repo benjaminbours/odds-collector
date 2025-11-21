@@ -4,10 +4,10 @@
 
 /**
  * Format team name for use in file paths
- * Replaces spaces with underscores
+ * Converts to lowercase and replaces spaces with underscores
  */
 export function formatTeamNameForPath(teamName: string): string {
-  return teamName.replace(/\s+/g, '_');
+  return teamName.toLowerCase().replace(/\s+/g, '_');
 }
 
 /**
