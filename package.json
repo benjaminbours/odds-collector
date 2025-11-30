@@ -11,7 +11,9 @@
     "tail": "wrangler tail",
     "test": "jest",
     "lint": "eslint src **/**.ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "backfill": "ts-node src/scripts/backfill.ts",
+    "rebuild-indexes": "ts-node src/scripts/rebuildIndexes.ts"
   },
   "keywords": [
     "sports",
@@ -41,6 +43,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "dotenv": "^17.2.3",
     "eslint": "^8.57.1",
     "globals": "^16.5.0",
     "jest": "^29.5.0",

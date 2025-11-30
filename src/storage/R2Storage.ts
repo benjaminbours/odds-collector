@@ -121,7 +121,7 @@ export class R2Storage implements IStorage {
    */
   private async withRetry<T>(
     operation: () => Promise<T>,
-    operationName: string
+    operationName: string,
   ): Promise<T> {
     let lastError: Error | undefined;
 
@@ -136,7 +136,7 @@ export class R2Storage implements IStorage {
           console.warn(
             `R2Storage: ${operationName} failed (attempt ${attempt}/${this.maxRetries}), ` +
               `retrying in ${delay}ms...`,
-            error
+            error,
           );
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
@@ -144,7 +144,7 @@ export class R2Storage implements IStorage {
     }
 
     throw new Error(
-      `R2Storage: ${operationName} failed after ${this.maxRetries} attempts: ${lastError?.message}`
+      `R2Storage: ${operationName} failed after ${this.maxRetries} attempts: ${lastError?.message}`,
     );
   }
 
@@ -161,7 +161,7 @@ export class R2Storage implements IStorage {
   async saveSnapshot(
     leagueId: string,
     season: string,
-    snapshot: OddsSnapshot
+    snapshot: OddsSnapshot,
   ): Promise<string> {
     const snapshotId = this.getSnapshotId(snapshot);
     const key = this.getKey("leagues", leagueId, season, `${snapshotId}.json`);
@@ -181,7 +181,7 @@ export class R2Storage implements IStorage {
             timing: snapshot.metadata.snapshotTiming,
             collectedAt: snapshot.metadata.timestamp,
           },
-        })
+        }),
       );
     }, `saveSnapshot(${key})`);
 
@@ -191,7 +191,7 @@ export class R2Storage implements IStorage {
   async getSnapshot(
     leagueId: string,
     season: string,
-    snapshotId: string
+    snapshotId: string,
   ): Promise<OddsSnapshot | null> {
     const key = this.getKey("leagues", leagueId, season, `${snapshotId}.json`);
 
@@ -201,7 +201,7 @@ export class R2Storage implements IStorage {
           new GetObjectCommand({
             Bucket: this.bucketName,
             Key: key,
-          })
+          }),
         );
       }, `getSnapshot(${key})`);
 
@@ -225,7 +225,7 @@ export class R2Storage implements IStorage {
   async snapshotExists(
     leagueId: string,
     season: string,
-    snapshotId: string
+    snapshotId: string,
   ): Promise<boolean> {
     const key = this.getKey("leagues", leagueId, season, `${snapshotId}.json`);
 
@@ -235,7 +235,7 @@ export class R2Storage implements IStorage {
           new HeadObjectCommand({
             Bucket: this.bucketName,
             Key: key,
-          })
+          }),
         );
       }, `snapshotExists(${key})`);
       return true;
@@ -253,7 +253,7 @@ export class R2Storage implements IStorage {
   async deleteSnapshot(
     leagueId: string,
     season: string,
-    snapshotId: string
+    snapshotId: string,
   ): Promise<void> {
     const key = this.getKey("leagues", leagueId, season, `${snapshotId}.json`);
 
@@ -262,7 +262,7 @@ export class R2Storage implements IStorage {
         new DeleteObjectCommand({
           Bucket: this.bucketName,
           Key: key,
-        })
+        }),
       );
     }, `deleteSnapshot(${key})`);
   }
@@ -280,7 +280,7 @@ export class R2Storage implements IStorage {
             Bucket: this.bucketName,
             Prefix: prefix,
             ContinuationToken: continuationToken,
-          })
+          }),
         );
       }, `listSnapshots(${prefix})`);
 
@@ -306,7 +306,7 @@ export class R2Storage implements IStorage {
     leagueId: string,
     season: string,
     indexType: "by_match" | "by_date" | "by_team",
-    index: MatchIndex
+    index: MatchIndex,
   ): Promise<void> {
     const key = this.getKey("leagues", leagueId, season, `${indexType}.json`);
     const body = JSON.stringify(index, null, 2);
@@ -325,7 +325,7 @@ export class R2Storage implements IStorage {
             matchCount: String(Object.keys(index.matches).length),
             lastUpdated: index.lastUpdated,
           },
-        })
+        }),
       );
     }, `saveIndex(${key})`);
   }
@@ -333,7 +333,7 @@ export class R2Storage implements IStorage {
   async getIndex(
     leagueId: string,
     season: string,
-    indexType: "by_match" | "by_date" | "by_team"
+    indexType: "by_match" | "by_date" | "by_team",
   ): Promise<MatchIndex | null> {
     const key = this.getKey("leagues", leagueId, season, `${indexType}.json`);
 
@@ -349,7 +349,7 @@ export class R2Storage implements IStorage {
           new GetObjectCommand({
             Bucket: this.bucketName,
             Key: key,
-          })
+          }),
         );
       }, `getIndex(${key})`);
 
@@ -373,7 +373,7 @@ export class R2Storage implements IStorage {
   async indexExists(
     leagueId: string,
     season: string,
-    indexType: "by_match" | "by_date" | "by_team"
+    indexType: "by_match" | "by_date" | "by_team",
   ): Promise<boolean> {
     const key = this.getKey("leagues", leagueId, season, `${indexType}.json`);
 
@@ -383,7 +383,7 @@ export class R2Storage implements IStorage {
         new HeadObjectCommand({
           Bucket: this.bucketName,
           Key: key,
-        })
+        }),
       );
       return true;
     } catch (error: any) {
@@ -406,7 +406,7 @@ export class R2Storage implements IStorage {
       // For any other error, log and return false (assume doesn't exist)
       console.warn(
         `R2Storage: indexExists check failed for ${key}:`,
-        error.message
+        error.message,
       );
       return false;
     }
@@ -441,10 +441,10 @@ export class R2Storage implements IStorage {
       leagueId: string;
       season: string;
       snapshot: OddsSnapshot;
-    }>
+    }>,
   ): Promise<void> {
     const promises = snapshots.map(({ leagueId, season, snapshot }) =>
-      this.saveSnapshot(leagueId, season, snapshot)
+      this.saveSnapshot(leagueId, season, snapshot),
     );
 
     await Promise.all(promises);
@@ -459,7 +459,7 @@ export class R2Storage implements IStorage {
         new ListObjectsV2Command({
           Bucket: this.bucketName,
           MaxKeys: 1,
-        })
+        }),
       );
       return true;
     } catch (error) {
