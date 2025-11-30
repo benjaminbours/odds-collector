@@ -7,17 +7,22 @@
 import { IStorage } from "../storage/IStorage";
 import { MatchIndex, MatchIndexEntry } from "../config/types";
 import { generateMatchKey, formatTeamNameForPath } from "../utils/pathUtils";
+import { normalizeTeamName } from "@footdata/shared";
 
 export interface IndexBuilderConfig {
   /** Storage backend */
   storage: IStorage;
+  /** League ID for team name normalization */
+  leagueId?: string;
 }
 
 export class IndexBuilder {
   private storage: IStorage;
+  private leagueId?: string;
 
   constructor(config: IndexBuilderConfig) {
     this.storage = config.storage;
+    this.leagueId = config.leagueId;
   }
 
   /**
@@ -55,17 +60,25 @@ export class IndexBuilder {
 
     // Update index with new snapshots
     for (const snapshot of snapshots) {
+      // Normalize team names if leagueId is provided
+      const homeTeam = this.leagueId
+        ? normalizeTeamName(this.leagueId, snapshot.homeTeam)
+        : snapshot.homeTeam;
+      const awayTeam = this.leagueId
+        ? normalizeTeamName(this.leagueId, snapshot.awayTeam)
+        : snapshot.awayTeam;
+
       const matchKey = generateMatchKey(
-        snapshot.homeTeam,
-        snapshot.awayTeam,
+        homeTeam,
+        awayTeam,
         snapshot.matchDate
       );
 
       // Get or create match entry
       if (!index.matches[matchKey]) {
         index.matches[matchKey] = {
-          homeTeam: snapshot.homeTeam,
-          awayTeam: snapshot.awayTeam,
+          homeTeam,
+          awayTeam,
           matchDate: snapshot.matchDate,
           eventId: snapshot.eventId,
           snapshots: {},

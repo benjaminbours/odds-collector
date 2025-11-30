@@ -12,6 +12,7 @@ import { TimingPresets } from "../config/timingPresets";
 import { getLeagueConfig } from "../config/leagues";
 import { IndexBuilder } from "../core/IndexBuilder";
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
+import { normalizeTeamName } from "@footdata/shared";
 import type { OddsSnapshot, EventOdds } from "../config/types";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
@@ -196,8 +197,8 @@ async function main() {
               odds: {
                 id: eventId,
                 sportKey: oddsData.sport_key,
-                homeTeam: oddsData.home_team,
-                awayTeam: oddsData.away_team,
+                homeTeam: normalizeTeamName("england_premier_league", oddsData.home_team),
+                awayTeam: normalizeTeamName("england_premier_league", oddsData.away_team),
                 commenceTime: oddsData.commence_time,
                 bookmakers: oddsData.bookmakers || [],
               } as EventOdds,
@@ -235,7 +236,7 @@ async function main() {
   if (uploaded > 0 && !dryRun) {
     console.log("\n📚 Rebuilding indexes...");
 
-    const indexBuilder = new IndexBuilder({ storage });
+    const indexBuilder = new IndexBuilder({ storage, leagueId: "england_premier_league" });
 
     for (const season of seasons) {
       try {

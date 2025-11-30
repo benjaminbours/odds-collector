@@ -46,7 +46,7 @@ async function rebuildIndexes(leagueId: string, season: string) {
     basePath: "odds_data_v2",
   });
 
-  const indexBuilder = new IndexBuilder({ storage });
+  const indexBuilder = new IndexBuilder({ storage, leagueId });
 
   try {
     console.log(`\n📋 Listing snapshots...`);
