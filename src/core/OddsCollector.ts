@@ -7,6 +7,7 @@
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { JobScheduler } from "./JobScheduler";
+import { ValueBetOrchestrator } from "./ValueBetOrchestrator";
 import {
   LeagueConfig,
   TimingOffset,
@@ -46,6 +47,15 @@ export interface OddsCollectorConfig {
 
   /** Discovery window: days ahead to look for events (default: 14) */
   discoveryDaysAhead?: number;
+
+  /** Backend URL for value bet detection (optional - enables track record) */
+  backendUrl?: string;
+
+  /** Backend API key for value bet detection */
+  backendApiKey?: string;
+
+  /** Enable value bet detection at opening timing (default: false) */
+  enableValueBetDetection?: boolean;
 }
 
 export class OddsCollector {
@@ -61,6 +71,10 @@ export class OddsCollector {
   private enableDiscovery: boolean;
   private discoveryDaysAhead: number;
 
+  // Value bet detection (optional - for track record)
+  private valueBetOrchestrator: ValueBetOrchestrator | null = null;
+  private enableValueBetDetection: boolean;
+
   constructor(config: OddsCollectorConfig) {
     this.provider = config.provider;
     this.storage = config.storage;
@@ -72,6 +86,17 @@ export class OddsCollector {
     this.requestDelay = config.requestDelay ?? 1100;
     this.enableDiscovery = config.enableDiscovery ?? true;
     this.discoveryDaysAhead = config.discoveryDaysAhead ?? 14;
+    this.enableValueBetDetection = config.enableValueBetDetection ?? false;
+
+    // Initialize value bet orchestrator if configured
+    if (config.backendUrl && config.backendApiKey && this.enableValueBetDetection) {
+      this.valueBetOrchestrator = new ValueBetOrchestrator({
+        backendUrl: config.backendUrl,
+        backendApiKey: config.backendApiKey,
+        db: config.db,
+      });
+      console.log("✅ Value bet detection enabled");
+    }
   }
 
   /**
@@ -294,6 +319,34 @@ export class OddsCollector {
         await this.scheduler.updateJobStatus(job.id, "completed", snapshotPath);
 
         console.log(`     ✅ Saved to: ${snapshotPath}`);
+
+        // Value bet detection/CLV update (if enabled)
+        if (this.valueBetOrchestrator) {
+          try {
+            if (job.timingOffset === "opening") {
+              // Detect value bets at opening timing
+              await this.valueBetOrchestrator.detectAndStoreValueBets({
+                eventId: job.eventId,
+                homeTeam: job.homeTeam,
+                awayTeam: job.awayTeam,
+                matchDate: job.matchDate,
+                kickoffTime: job.kickoffTime,
+                leagueId: job.leagueId,
+                season,
+                oddsSnapshot: oddsData,
+              });
+            } else if (job.timingOffset === "closing") {
+              // Update CLV at closing timing
+              await this.valueBetOrchestrator.updateClv(job.eventId, oddsData);
+            }
+          } catch (vbError) {
+            // Log but don't fail the job - odds collection succeeded
+            console.error(
+              `     ⚠️ Value bet processing error:`,
+              vbError instanceof Error ? vbError.message : vbError
+            );
+          }
+        }
 
         // Update metrics
         const today = new Date().toISOString().split("T")[0];

@@ -21,6 +21,8 @@ import { TimingPresets } from "../config/timingPresets";
 import { IndexBuilder } from "../core/IndexBuilder";
 import { normalizeTeamName } from "@footdata/shared";
 import { getLeagueConfig } from "../config/leagues";
+import { ValueBetService } from "../core/ValueBetService";
+import type { ValueBetStatus, CreateValueBetRequest, ValueBetOutcome } from "../config/types";
 
 export interface Env {
   // R2 bucket binding
@@ -36,6 +38,11 @@ export interface Env {
   R2_SECRET_ACCESS_KEY: string;
   LEAGUES: string; // JSON array of league IDs
   TIMING_PRESET: "MINIMAL" | "BASIC" | "STANDARD" | "COMPREHENSIVE";
+
+  // Value bet detection (optional - for track record)
+  BACKEND_URL?: string;
+  BACKEND_API_KEY?: string;
+  ENABLE_VALUE_BET_DETECTION?: string; // "true" or "false"
 }
 
 /**
@@ -98,6 +105,10 @@ export default {
           TimingPresets[env.TIMING_PRESET] || TimingPresets.COMPREHENSIVE,
         db: env.odds_collector_db, // Use D1 database binding
         enableDiscovery: isDiscoveryRun, // Only enable discovery on 6 AM run
+        // Value bet detection configuration
+        backendUrl: env.BACKEND_URL,
+        backendApiKey: env.BACKEND_API_KEY,
+        enableValueBetDetection: env.ENABLE_VALUE_BET_DETECTION === "true",
       });
 
       // Add all configured leagues with team name normalization
@@ -516,8 +527,240 @@ export default {
       }
     }
 
+    // ===========================================
+    // Value Bet Track Record API
+    // ===========================================
+
+    // GET /api/track-record - Get track record statistics
+    if (url.pathname === "/api/track-record" && request.method === "GET") {
+      try {
+        const modelId = url.searchParams.get("model_id") || "oddslab_default";
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        const trackRecord = await valueBetService.getTrackRecord(modelId);
+
+        return new Response(JSON.stringify(trackRecord), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to get track record", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // GET /api/value-bets - List value bets with optional filters
+    if (url.pathname === "/api/value-bets" && request.method === "GET") {
+      try {
+        const status = url.searchParams.get("status") as ValueBetStatus | null;
+        const leagueId = url.searchParams.get("league_id");
+        const modelId = url.searchParams.get("model_id");
+        const limit = parseInt(url.searchParams.get("limit") || "20", 10);
+        const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        const result = await valueBetService.listValueBets({
+          status: status || undefined,
+          leagueId: leagueId || undefined,
+          modelId: modelId || undefined,
+          limit,
+          offset,
+        });
+
+        return new Response(
+          JSON.stringify({
+            valueBets: result.valueBets,
+            pagination: {
+              total: result.total,
+              limit,
+              offset,
+              hasMore: offset + result.valueBets.length < result.total,
+            },
+          }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to list value bets", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // GET /api/value-bets/:id - Get single value bet
+    if (url.pathname.match(/^\/api\/value-bets\/[^/]+$/) && request.method === "GET") {
+      try {
+        const id = url.pathname.split("/").pop()!;
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        const valueBet = await valueBetService.getValueBetById(id);
+
+        if (!valueBet) {
+          return new Response(JSON.stringify({ error: "Value bet not found" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify(valueBet), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to get value bet", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // POST /api/value-bets - Create value bet (called by backend after detection)
+    if (url.pathname === "/api/value-bets" && request.method === "POST") {
+      // Verify internal API key
+      const authHeader = request.headers.get("X-Internal-Key");
+      if (authHeader !== env.ODDS_API_KEY) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const body = await request.json() as {
+          modelId: string;
+          eventId: string;
+          matchId?: string;
+          leagueId: string;
+          season: string;
+          homeTeam: string;
+          awayTeam: string;
+          matchDate: string;
+          kickoffTime: string;
+          valueBet: CreateValueBetRequest;
+        };
+
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        const created = await valueBetService.createValueBet(body);
+
+        return new Response(JSON.stringify(created), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to create value bet", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // PATCH /api/value-bets/:id/clv - Update CLV (called internally after closing odds)
+    if (url.pathname.match(/^\/api\/value-bets\/[^/]+\/clv$/) && request.method === "PATCH") {
+      const authHeader = request.headers.get("X-Internal-Key");
+      if (authHeader !== env.ODDS_API_KEY) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const parts = url.pathname.split("/");
+        const id = parts[parts.length - 2];
+        const body = await request.json() as {
+          closingOdds: number;
+          closingImpliedProb: number;
+          clv: number;
+        };
+
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        await valueBetService.updateClv(id, body);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to update CLV", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // PATCH /api/value-bets/:id/outcome - Update outcome (called by backend after match)
+    if (url.pathname.match(/^\/api\/value-bets\/[^/]+\/outcome$/) && request.method === "PATCH") {
+      const authHeader = request.headers.get("X-Internal-Key");
+      if (authHeader !== env.ODDS_API_KEY) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const parts = url.pathname.split("/");
+        const id = parts[parts.length - 2];
+        const body = await request.json() as {
+          actualOutcome: ValueBetOutcome;
+          betWon: boolean;
+          profitFlat: number;
+          profitKelly: number;
+        };
+
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        await valueBetService.updateOutcome(id, body);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to update outcome", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // PATCH /api/value-bets/:id/posted - Mark as posted to Twitter
+    if (url.pathname.match(/^\/api\/value-bets\/[^/]+\/posted$/) && request.method === "PATCH") {
+      const authHeader = request.headers.get("X-Internal-Key");
+      if (authHeader !== env.ODDS_API_KEY) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const parts = url.pathname.split("/");
+        const id = parts[parts.length - 2];
+
+        const valueBetService = new ValueBetService({ db: env.odds_collector_db });
+        await valueBetService.markAsPosted(id);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: "Failed to mark as posted", message: (error as Error).message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     return new Response(
-      "Not Found\n\nAvailable endpoints:\n- GET / or /dashboard (HTML or JSON based on Accept header)\n- GET /health\n- POST /trigger (requires auth)\n- GET /status (redirects to /dashboard)\n- GET /download/{league}/{season}/{snapshotId}",
+      "Not Found\n\nAvailable endpoints:\n" +
+      "- GET / or /dashboard (HTML or JSON based on Accept header)\n" +
+      "- GET /health\n" +
+      "- POST /trigger (requires auth)\n" +
+      "- GET /status (redirects to /dashboard)\n" +
+      "- GET /download/{league}/{season}/{snapshotId}\n" +
+      "- GET /api/track-record\n" +
+      "- GET /api/value-bets\n" +
+      "- GET /api/value-bets/:id\n" +
+      "- POST /api/value-bets (internal)\n" +
+      "- PATCH /api/value-bets/:id/clv (internal)\n" +
+      "- PATCH /api/value-bets/:id/outcome (internal)\n" +
+      "- PATCH /api/value-bets/:id/posted (internal)",
       {
         status: 404,
       }
