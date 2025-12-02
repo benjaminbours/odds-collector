@@ -50,7 +50,9 @@ async function main() {
     process.exit(1);
   }
   const timingOffsets = TimingPresets.COMPREHENSIVE;
-  const provider = new TheOddsApiProvider({ apiKey: process.env.ODDS_API_KEY! });
+  const provider = new TheOddsApiProvider({
+    apiKey: process.env.ODDS_API_KEY!,
+  });
 
   // Initialize R2
   const storage = new R2Storage({
@@ -130,7 +132,7 @@ async function main() {
     // Fetch events visible at the start of this week
     try {
       apiCalls++;
-      const events = await provider.getHistoricalEvents(
+      const events = await provider.fetchHistoricalEvents(
         league.oddsApiKey,
         `${batch.start}T00:00:00Z`,
         `${batch.start}T00:00:00Z`,
@@ -142,12 +144,12 @@ async function main() {
 
       for (const event of events) {
         const eventId = event.id;
-        const commenceTime = new Date(event.commence_time);
-        const matchDate = event.commence_time.split("T")[0];
+        const commenceTime = new Date(event.commenceTime);
+        const matchDate = event.commenceTime.split("T")[0];
         const season = inferSeasonFromDate(matchDate);
 
         console.log(
-          `\n   📅 ${event.home_team} vs ${event.away_team} (${matchDate})`,
+          `\n   📅 ${event.homeTeam} vs ${event.awayTeam} (${matchDate})`,
         );
 
         for (const timing of timingOffsets) {
@@ -173,7 +175,7 @@ async function main() {
 
           try {
             apiCalls++;
-            const oddsData = await provider.getHistoricalEventOdds(
+            const oddsData = await provider.fetchHistoricalEventOdds(
               league.oddsApiKey,
               eventId,
               fetchTimeISO,
@@ -191,15 +193,21 @@ async function main() {
                 snapshotTiming: timing.name as any,
                 eventMetadata: {
                   eventId,
-                  kickoffTime: oddsData.commence_time,
+                  kickoffTime: oddsData.commenceTime,
                 },
               },
               odds: {
                 id: eventId,
-                sportKey: oddsData.sport_key,
-                homeTeam: normalizeTeamName("england_premier_league", oddsData.home_team),
-                awayTeam: normalizeTeamName("england_premier_league", oddsData.away_team),
-                commenceTime: oddsData.commence_time,
+                sportKey: oddsData.sportKey,
+                homeTeam: normalizeTeamName(
+                  "england_premier_league",
+                  oddsData.homeTeam,
+                ),
+                awayTeam: normalizeTeamName(
+                  "england_premier_league",
+                  oddsData.awayTeam,
+                ),
+                commenceTime: oddsData.commenceTime,
                 bookmakers: oddsData.bookmakers || [],
               } as EventOdds,
             };
@@ -236,7 +244,10 @@ async function main() {
   if (uploaded > 0 && !dryRun) {
     console.log("\n📚 Rebuilding indexes...");
 
-    const indexBuilder = new IndexBuilder({ storage, leagueId: "england_premier_league" });
+    const indexBuilder = new IndexBuilder({
+      storage,
+      leagueId: "england_premier_league",
+    });
 
     for (const season of seasons) {
       try {
