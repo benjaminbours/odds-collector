@@ -195,6 +195,45 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
 
+    // CORS configuration
+    const allowedOrigins = [
+      "http://localhost:8080",
+      "http://127.0.0.1:8080",
+      "https://app.oddslab.gg",
+      "https://oddslab.gg",
+    ];
+
+    const origin = request.headers.get("Origin") || "";
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": corsOrigin,
+      "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Internal-Key",
+      "Access-Control-Max-Age": "86400",
+    };
+
+    // Handle CORS preflight requests
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+      });
+    }
+
+    // Helper to add CORS headers to responses
+    const withCors = (response: Response): Response => {
+      const newHeaders = new Headers(response.headers);
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        newHeaders.set(key, value);
+      });
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders,
+      });
+    };
+
     // Health check endpoint
     if (url.pathname === "/health") {
       return new Response(
@@ -538,14 +577,14 @@ export default {
         const valueBetService = new ValueBetService({ db: env.odds_collector_db });
         const trackRecord = await valueBetService.getTrackRecord(modelId);
 
-        return new Response(JSON.stringify(trackRecord), {
+        return withCors(new Response(JSON.stringify(trackRecord), {
           headers: { "Content-Type": "application/json" },
-        });
+        }));
       } catch (error) {
-        return new Response(
+        return withCors(new Response(
           JSON.stringify({ error: "Failed to get track record", message: (error as Error).message }),
           { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+        ));
       }
     }
 
@@ -567,7 +606,7 @@ export default {
           offset,
         });
 
-        return new Response(
+        return withCors(new Response(
           JSON.stringify({
             valueBets: result.valueBets,
             pagination: {
@@ -578,12 +617,12 @@ export default {
             },
           }),
           { headers: { "Content-Type": "application/json" } }
-        );
+        ));
       } catch (error) {
-        return new Response(
+        return withCors(new Response(
           JSON.stringify({ error: "Failed to list value bets", message: (error as Error).message }),
           { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+        ));
       }
     }
 
@@ -595,20 +634,20 @@ export default {
         const valueBet = await valueBetService.getValueBetById(id);
 
         if (!valueBet) {
-          return new Response(JSON.stringify({ error: "Value bet not found" }), {
+          return withCors(new Response(JSON.stringify({ error: "Value bet not found" }), {
             status: 404,
             headers: { "Content-Type": "application/json" },
-          });
+          }));
         }
 
-        return new Response(JSON.stringify(valueBet), {
+        return withCors(new Response(JSON.stringify(valueBet), {
           headers: { "Content-Type": "application/json" },
-        });
+        }));
       } catch (error) {
-        return new Response(
+        return withCors(new Response(
           JSON.stringify({ error: "Failed to get value bet", message: (error as Error).message }),
           { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+        ));
       }
     }
 
