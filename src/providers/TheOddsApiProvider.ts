@@ -3,7 +3,7 @@
  * Documentation: https://the-odds-api.com/liveapi/guides/v4/
  */
 
-import { OddsEvent, EventOdds } from '../config/types';
+import { OddsEvent, EventOdds } from "../config/types";
 
 export interface TheOddsApiConfig {
   /** API key for The Odds API */
@@ -24,7 +24,7 @@ export class TheOddsApiProvider {
 
   constructor(config: TheOddsApiConfig) {
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://api.the-odds-api.com/v4';
+    this.baseUrl = config.baseUrl || "https://api.the-odds-api.com/v4";
     this.rateLimit = config.rateLimit;
     this.timeout = config.timeout || 30000;
   }
@@ -32,7 +32,7 @@ export class TheOddsApiProvider {
   async fetchEvents(
     leagueKey: string,
     commenceTimeFrom?: string,
-    commenceTimeTo?: string
+    commenceTimeTo?: string,
   ): Promise<OddsEvent[]> {
     let url = `${this.baseUrl}/sports/${leagueKey}/events?dateFormat=iso&apiKey=${this.apiKey}`;
 
@@ -51,7 +51,7 @@ export class TheOddsApiProvider {
     leagueKey: string,
     eventId: string,
     markets: string,
-    regions: string = 'eu'
+    regions: string = "eu",
   ): Promise<EventOdds> {
     const url = `${this.baseUrl}/sports/${leagueKey}/events/${eventId}/odds?regions=${regions}&markets=${markets}&dateFormat=iso&apiKey=${this.apiKey}`;
 
@@ -63,7 +63,7 @@ export class TheOddsApiProvider {
     leagueKey: string,
     snapshotDate: string,
     commenceTimeFrom?: string,
-    commenceTimeTo?: string
+    commenceTimeTo?: string,
   ): Promise<OddsEvent[]> {
     let url = `${this.baseUrl}/historical/sports/${leagueKey}/events?dateFormat=iso&date=${snapshotDate}&apiKey=${this.apiKey}`;
 
@@ -83,7 +83,7 @@ export class TheOddsApiProvider {
     eventId: string,
     snapshotDate: string,
     markets: string,
-    regions: string = 'eu'
+    regions: string = "eu",
   ): Promise<EventOdds> {
     const url = `${this.baseUrl}/historical/sports/${leagueKey}/events/${eventId}/odds?regions=${regions}&markets=${markets}&dateFormat=iso&date=${snapshotDate}&apiKey=${this.apiKey}`;
 
@@ -92,18 +92,18 @@ export class TheOddsApiProvider {
   }
 
   estimateCost(
-    type: 'events' | 'live_odds' | 'historical_events' | 'historical_odds',
+    type: "events" | "live_odds" | "historical_events" | "historical_odds",
     markets: number,
-    regions: number
+    regions: number,
   ): number {
     switch (type) {
-      case 'events':
+      case "events":
         return 0; // FREE
-      case 'live_odds':
+      case "live_odds":
         return markets * regions;
-      case 'historical_events':
+      case "historical_events":
         return 1;
-      case 'historical_odds':
+      case "historical_odds":
         return 10 * markets * regions;
       default:
         return 0;
@@ -125,8 +125,24 @@ export class TheOddsApiProvider {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        // Try to get detailed error message from response body
+        let errorDetail = "";
+        try {
+          // Try to parse as JSON for structured error
+          try {
+            const errorJson = (await response.json()) as any;
+            errorDetail =
+              errorJson.message || errorJson.error || "unknown error message";
+          } catch {
+            errorDetail = "unknown error message";
+          }
+        } catch {
+          // Ignore errors reading body
+        }
+
+        const baseMessage = `HTTP error! Status: ${response.status} - ${response.statusText}`;
         throw new Error(
-          `HTTP error! Status: ${response.status} - ${response.statusText}`
+          errorDetail ? `${baseMessage}\nDetails: ${errorDetail}` : baseMessage,
         );
       }
 
@@ -135,13 +151,13 @@ export class TheOddsApiProvider {
       clearTimeout(timeoutId);
 
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
+        if (error.name === "AbortError") {
           throw new Error(`Request timeout after ${this.timeout}ms`);
         }
         throw error;
       }
 
-      throw new Error('Unknown error occurred');
+      throw new Error("Unknown error occurred");
     }
   }
 

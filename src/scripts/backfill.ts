@@ -179,8 +179,8 @@ async function main() {
               league.oddsApiKey,
               eventId,
               fetchTimeISO,
-              "eu",
               timing.markets,
+              "eu",
             );
 
             const snapshot: OddsSnapshot = {
