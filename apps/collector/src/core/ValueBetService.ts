@@ -6,9 +6,9 @@ import type {
   ValueBet,
   ValueBetStatus,
   ValueBetOutcome,
-  CreateValueBetRequest,
   TrackRecordResponse,
-} from '../config/types';
+} from '@odds-collector/shared';
+import type { CreateValueBetRequest } from '../config/types';
 
 export interface ValueBetServiceConfig {
   db: D1Database;

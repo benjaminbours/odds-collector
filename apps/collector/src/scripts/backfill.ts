@@ -13,7 +13,7 @@ import { getLeagueConfig } from "../config/leagues";
 import { IndexBuilder } from "../core/IndexBuilder";
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { normalizeTeamName } from "@footdata/shared";
-import type { OddsSnapshot, EventOdds } from "../config/types";
+import type { OddsSnapshot, EventOdds } from "@odds-collector/shared";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 

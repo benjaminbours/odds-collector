@@ -7,8 +7,8 @@
  */
 
 import { ValueBetService, CreateValueBetParams } from './ValueBetService';
+import type { EventOdds } from '@odds-collector/shared';
 import type {
-  EventOdds,
   DetectValueBetsRequest,
   DetectValueBetsResponse,
   CreateValueBetRequest,

@@ -8,12 +8,8 @@ import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { JobScheduler } from "./JobScheduler";
 import { ValueBetOrchestrator } from "./ValueBetOrchestrator";
-import {
-  LeagueConfig,
-  TimingOffset,
-  OddsSnapshot,
-  CollectionMetrics,
-} from "../config/types";
+import { TimingOffset, OddsSnapshot } from "@odds-collector/shared";
+import { CollectionMetrics, CollectorLeagueConfig } from "../config/types";
 import {
   generateJobId,
   calculateScheduledTime,
@@ -63,7 +59,7 @@ export class OddsCollector {
   private storage: R2Storage;
   private scheduler: JobScheduler;
   private timings: TimingOffset[];
-  private leagues: Map<string, LeagueConfig> = new Map();
+  private leagues: Map<string, CollectorLeagueConfig> = new Map();
 
   private maxJobsPerRun: number;
   private maxConcurrentRequests: number;
@@ -102,7 +98,7 @@ export class OddsCollector {
   /**
    * Add a league to collect odds for
    */
-  addLeague(league: LeagueConfig): void {
+  addLeague(league: CollectorLeagueConfig): void {
     this.leagues.set(league.id, league);
   }
 

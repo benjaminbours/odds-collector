@@ -6,7 +6,7 @@ import {
   DeleteObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { OddsSnapshot, MatchIndex } from "../config/types";
+import { OddsSnapshot, MatchIndex } from "@odds-collector/shared";
 import { IStorage } from "./IStorage";
 
 export interface R2StorageConfig {

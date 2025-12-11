@@ -22,7 +22,8 @@ import { IndexBuilder } from "../core/IndexBuilder";
 import { normalizeTeamName } from "@footdata/shared";
 import { getLeagueConfig } from "../config/leagues";
 import { ValueBetService } from "../core/ValueBetService";
-import type { ValueBetStatus, CreateValueBetRequest, ValueBetOutcome } from "../config/types";
+import type { ValueBetStatus, ValueBetOutcome } from "@odds-collector/shared";
+import type { CreateValueBetRequest } from "../config/types";
 
 export interface Env {
   // R2 bucket binding

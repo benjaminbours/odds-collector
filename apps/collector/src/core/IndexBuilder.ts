@@ -5,7 +5,7 @@
  */
 
 import { IStorage } from "../storage/IStorage";
-import { MatchIndex, MatchIndexEntry } from "../config/types";
+import { MatchIndex, MatchIndexEntry } from "@odds-collector/shared";
 import { generateMatchKey, formatTeamNameForPath } from "../utils/pathUtils";
 import { normalizeTeamName } from "@footdata/shared";
 

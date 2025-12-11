@@ -3,7 +3,7 @@
  * Documentation: https://the-odds-api.com/liveapi/guides/v4/
  */
 
-import { OddsEvent, EventOdds } from "../config/types";
+import { OddsEvent, EventOdds } from "@odds-collector/shared";
 
 export interface TheOddsApiConfig {
   /** API key for The Odds API */

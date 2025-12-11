@@ -3,14 +3,14 @@
  * Simplified version for Cloudflare Worker
  */
 
-export interface LeagueConfig {
+export interface WorkerLeagueConfig {
   id: string;
   name: string;
   oddsApiKey: string;
   currentSeason: string;
 }
 
-export const LEAGUES: LeagueConfig[] = [
+export const LEAGUES: WorkerLeagueConfig[] = [
   {
     id: "england_premier_league",
     name: "English Premier League",
@@ -25,6 +25,6 @@ export const LEAGUES: LeagueConfig[] = [
   },
 ];
 
-export function getLeagueConfig(leagueId: string): LeagueConfig | undefined {
+export function getLeagueConfig(leagueId: string): WorkerLeagueConfig | undefined {
   return LEAGUES.find((league) => league.id === leagueId);
 }

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { OddsSnapshot, MatchIndex } from '../config/types';
+import { OddsSnapshot, MatchIndex } from '@odds-collector/shared';
 import { IStorage } from './IStorage';
 
 export interface LocalStorageConfig {

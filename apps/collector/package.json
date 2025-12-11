@@ -19,8 +19,16 @@
     "sports",
     "betting",
     "odds",
+    "api",
+    "collection",
+    "automation",
+    "scheduling",
     "cloudflare",
-    "workers"
+    "workers",
+    "r2",
+    "d1",
+    "football",
+    "soccer"
   ],
   "author": "Benjamin Bours",
   "license": "MIT",

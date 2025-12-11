@@ -4,7 +4,7 @@
  * These define when to collect odds relative to match kickoff
  */
 
-import { TimingOffset } from "./types";
+import { TimingOffset } from "@odds-collector/shared";
 
 /**
  * Opening odds - 7 days before kickoff

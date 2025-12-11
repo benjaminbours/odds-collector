@@ -4,8 +4,9 @@
  * Main exports for programmatic use
  */
 
-// Core types
-export * from './config/types';
+// Core types - re-export shared types and collector-specific types
+export * from '@odds-collector/shared';
+export { CollectorLeagueConfig, ScheduledJob, CollectionMetrics, CreateValueBetRequest, DetectValueBetsRequest, DetectValueBetsResponse } from './config/types';
 export * from './config/timingPresets';
 export { LEAGUES, getLeagueConfig } from './config/leagues';
 

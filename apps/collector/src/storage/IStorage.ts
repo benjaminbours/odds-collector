@@ -1,4 +1,4 @@
-import { OddsSnapshot, MatchIndex } from '../config/types';
+import { OddsSnapshot, MatchIndex } from '@odds-collector/shared';
 
 /**
  * Storage interface for odds snapshots and indexes
