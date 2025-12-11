@@ -134,10 +134,14 @@ export default {
       await collector.run();
 
       // Build indexes for all leagues
-      const indexBuilder = new IndexBuilder({ storage: collector["storage"] });
       const scheduler = collector["scheduler"];
 
       for (const leagueId of leagueIds) {
+        // Create IndexBuilder with leagueId for proper team name normalization
+        const indexBuilder = new IndexBuilder({
+          storage: collector["storage"],
+          leagueId,
+        });
         const season = inferCurrentSeason();
         try {
           // Step 1: Get completed jobs for this league
