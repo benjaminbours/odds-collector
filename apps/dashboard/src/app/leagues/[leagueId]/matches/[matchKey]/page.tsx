@@ -1,0 +1,150 @@
+import {
+  getLeagueById,
+  CURRENT_SEASON,
+  MatchIndex,
+  OddsSnapshot,
+} from "@odds-collector/shared";
+import { notFound } from "next/navigation";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { OddsChart } from "@/components/OddsChart";
+import { BookmakerComparison } from "@/components/BookmakerComparison";
+import "@/styles/match-page.css";
+
+interface PageProps {
+  params: Promise<{ leagueId: string; matchKey: string }>;
+}
+
+async function getMatchDetails(
+  leagueId: string,
+  season: string,
+  matchKey: string
+) {
+  const { env } = await getCloudflareContext({ async: true });
+  const bucket = env.ODDS_BUCKET;
+
+  // Fetch the match index to get snapshot paths
+  const indexKey = `odds_data_v2/leagues/${leagueId}/${season}/by_match.json`;
+  const indexObject = await bucket.get(indexKey);
+
+  if (!indexObject) {
+    return null;
+  }
+
+  const indexData: MatchIndex = await indexObject.json();
+  const decodedMatchKey = decodeURIComponent(matchKey);
+  const matchEntry = indexData.matches[decodedMatchKey];
+
+  console.log("match entry", matchEntry);
+
+  if (!matchEntry) {
+    return null;
+  }
+
+  // Fetch all snapshots in parallel
+  const snapshotPromises = Object.entries(matchEntry.snapshots).map(
+    async ([timing, path]) => {
+      const snapshotObject = await bucket.get(path);
+      if (!snapshotObject) {
+        return { timing, snapshot: null };
+      }
+      const snapshot: OddsSnapshot = await snapshotObject.json();
+      return { timing, snapshot };
+    }
+  );
+
+  const snapshotResults = await Promise.all(snapshotPromises);
+
+  // Build snapshots map
+  const snapshots: Record<string, OddsSnapshot> = {};
+  for (const { timing, snapshot } of snapshotResults) {
+    if (snapshot) {
+      snapshots[timing] = snapshot;
+    }
+  }
+
+  return {
+    matchKey: decodedMatchKey,
+    homeTeam: matchEntry.homeTeam,
+    awayTeam: matchEntry.awayTeam,
+    matchDate: matchEntry.matchDate,
+    kickoffTime: matchEntry.kickoffTime,
+    eventId: matchEntry.eventId,
+    snapshots,
+  };
+}
+
+export default async function MatchPage({ params }: PageProps) {
+  const { leagueId, matchKey } = await params;
+  const league = getLeagueById(leagueId);
+
+  console.log("HERE league", league);
+
+  if (!league) {
+    notFound();
+  }
+
+  const season = CURRENT_SEASON;
+  const match = await getMatchDetails(leagueId, season, matchKey);
+
+  if (!match) {
+    notFound();
+  }
+
+  const kickoffDate = new Date(match.kickoffTime);
+  const formattedDate = kickoffDate.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="match-page">
+      <header className="match-page__header">
+        <p className="match-page__league">{league.name}</p>
+        <h1 className="match-page__title">
+          {match.homeTeam} vs {match.awayTeam}
+        </h1>
+        <p className="match-page__date">{formattedDate}</p>
+      </header>
+
+      <section className="match-page__section">
+        <h2 className="match-page__section-title">Odds Movement</h2>
+        <div className="match-page__charts">
+          <OddsChart
+            snapshots={match.snapshots}
+            outcome="home"
+            title={`${match.homeTeam} Win`}
+            homeTeam={match.homeTeam}
+            awayTeam={match.awayTeam}
+          />
+          <OddsChart
+            snapshots={match.snapshots}
+            outcome="draw"
+            title="Draw"
+            homeTeam={match.homeTeam}
+            awayTeam={match.awayTeam}
+          />
+          <OddsChart
+            snapshots={match.snapshots}
+            outcome="away"
+            title={`${match.awayTeam} Win`}
+            homeTeam={match.homeTeam}
+            awayTeam={match.awayTeam}
+          />
+        </div>
+      </section>
+
+      <section className="match-page__section">
+        <h2 className="match-page__section-title">Bookmaker Comparison</h2>
+        <BookmakerComparison
+          snapshots={match.snapshots}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+        />
+      </section>
+    </div>
+  );
+}
