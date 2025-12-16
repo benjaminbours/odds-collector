@@ -1,0 +1,42 @@
+/* League Card Component - BEM */
+
+.league-card {
+  display: block;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+}
+
+.league-card:hover {
+  border-color: var(--color-purple-500);
+  transform: translateY(-2px);
+}
+
+.league-card__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.league-card__flag {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.league-card__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.league-card__name {
+  font-size: var(--font-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.league-card__season {
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "odds-dashboard",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "odds-dashboard"
+    }
+  ],
+  // Share the same D1 database as the collector
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "odds-collector-db",
+      "database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651"
+    }
+  ],
+  // Share the same R2 bucket
+  "r2_buckets": [
+    {
+      "binding": "ODDS_BUCKET",
+      "bucket_name": "soccer-predictor"
+    }
+  ]
+}

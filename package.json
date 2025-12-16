@@ -1,35 +1,24 @@
 {
-  "name": "odds-collector",
+  "name": "odds-collector-monorepo",
   "version": "0.1.0",
-  "description": "Cloudflare Worker for automated football odds collection with event-based scheduling, D1 persistence, and R2 storage",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail",
-    "test": "jest",
-    "lint": "eslint src **/**.ts",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "backfill": "ts-node src/scripts/backfill.ts",
-    "rebuild-indexes": "ts-node src/scripts/rebuildIndexes.ts"
-  },
-  "keywords": [
-    "sports",
-    "betting",
-    "odds",
-    "api",
-    "collection",
-    "automation",
-    "scheduling",
-    "cloudflare",
-    "workers",
-    "r2",
-    "d1",
-    "football",
-    "soccer"
+  "private": true,
+  "description": "OddsLab monorepo: odds collector and intelligence dashboard",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ],
+  "scripts": {
+    "dev:collector": "npm run dev -w @odds-collector/worker",
+    "dev:dashboard": "npm run dev -w @odds-collector/dashboard",
+    "build": "npm run build --workspaces",
+    "build:shared": "npm run build -w @odds-collector/shared",
+    "build:collector": "npm run build -w @odds-collector/worker",
+    "build:dashboard": "npm run build -w @odds-collector/dashboard",
+    "deploy:collector": "npm run deploy -w @odds-collector/worker",
+    "deploy:dashboard": "npm run deploy -w @odds-collector/dashboard",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present"
+  },
   "author": "Benjamin Bours",
   "license": "MIT",
   "repository": {
@@ -37,25 +26,14 @@
     "url": "https://github.com/benjaminbours/odds-collector.git"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251113.0",
     "@eslint/js": "^9.39.1",
-    "@types/jest": "^29.5.0",
-    "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "dotenv": "^17.2.3",
     "eslint": "^8.57.1",
     "globals": "^16.5.0",
-    "jest": "^29.5.0",
     "jiti": "^2.6.1",
     "prettier": "^3.0.0",
-    "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0",
-    "typescript-eslint": "^8.46.3",
-    "wrangler": "^4.46.0"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.0.0",
-    "@footdata/shared": "file:../footdata/typescript/shared"
+    "typescript-eslint": "^8.46.3"
   }
 }

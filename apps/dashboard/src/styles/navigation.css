@@ -1,0 +1,51 @@
+/* Navigation Component - BEM */
+
+.navigation {
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navigation__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.navigation__logo {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--color-purple-500);
+  transition: color var(--transition-fast);
+}
+
+.navigation__logo:hover {
+  color: var(--color-purple-600);
+}
+
+.navigation__links {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.navigation__link {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.navigation__link:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.navigation__link--active {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}

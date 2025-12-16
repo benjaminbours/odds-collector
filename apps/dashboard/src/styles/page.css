@@ -1,0 +1,73 @@
+/* Page Layout - BEM */
+
+.page {
+  padding: var(--spacing-xl) 0;
+}
+
+.page__header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.page__title {
+  font-size: var(--font-3xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.page__subtitle {
+  font-size: var(--font-base);
+  color: var(--color-text-secondary);
+}
+
+.page__section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.page__section-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--color-purple-500);
+  margin-bottom: var(--spacing-md);
+}
+
+.page__section-title--muted {
+  color: var(--color-text-secondary);
+}
+
+/* Grid Layouts */
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.grid--cols-2 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid--cols-3 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .grid--cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid--cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid--cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* List Layouts */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
