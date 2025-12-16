@@ -17,6 +17,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import { R2Storage } from "../storage/R2Storage";
 import { IndexBuilder } from "../core/IndexBuilder";
+import { CURRENT_SEASON } from "../config/leagues";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -139,7 +140,7 @@ function parseArgs() {
   const args = process.argv.slice(2);
 
   let leagueId = "england_premier_league";
-  let season = "2025-2026";
+  let season = CURRENT_SEASON;
 
   for (const arg of args) {
     if (arg.startsWith("--league=")) {

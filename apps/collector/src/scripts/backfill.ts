@@ -9,7 +9,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import { R2Storage } from "../storage/R2Storage";
 import { TimingPresets } from "../config/timingPresets";
-import { getLeagueConfig } from "../config/leagues";
+import { getLeagueConfig, CURRENT_SEASON } from "../config/leagues";
 import { IndexBuilder } from "../core/IndexBuilder";
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { normalizeTeamName } from "@footdata/shared";
@@ -64,7 +64,7 @@ async function main() {
   });
 
   // Check both seasons
-  const seasons = ["2025-2026"];
+  const seasons = [CURRENT_SEASON];
   const existingEventTimings = new Set<string>();
 
   console.log("\n📋 Checking existing R2 snapshots...");
