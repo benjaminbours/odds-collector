@@ -1,0 +1,276 @@
+.odds-movement {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.odds-movement--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--color-text-muted);
+}
+
+/* Market tabs */
+.odds-movement__markets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.odds-movement__market {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.odds-movement__market:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.odds-movement__market--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+/* Point selector */
+.odds-movement__points {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.odds-movement__points-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.odds-movement__points-select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.odds-movement__points-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Outcome tabs */
+.odds-movement__outcomes {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.odds-movement__outcome {
+  flex: 1;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.odds-movement__outcome:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.odds-movement__outcome--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+/* Chart container */
+.odds-movement__chart {
+  margin-bottom: var(--space-4);
+}
+
+/* Bookmaker selector */
+.odds-movement__bookmakers {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.odds-movement__bookmakers-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.odds-movement__bookmakers-toggle:hover {
+  border-color: var(--color-text-muted);
+}
+
+.odds-movement__bookmakers-arrow {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Bookmaker panel */
+.odds-movement__bookmakers-panel {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+}
+
+/* Quick select buttons */
+.odds-movement__quick-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.odds-movement__quick-select button {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.odds-movement__quick-select button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Bookmaker group */
+.odds-movement__bookmaker-group {
+  margin-bottom: var(--space-3);
+}
+
+.odds-movement__bookmaker-group:last-child {
+  margin-bottom: 0;
+}
+
+.odds-movement__bookmaker-group-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+}
+
+.odds-movement__bookmaker-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.odds-movement__bookmaker-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.odds-movement__bookmaker-item input {
+  cursor: pointer;
+}
+
+.odds-movement__bookmaker-color {
+  width: 12px;
+  height: 3px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* Compact legend */
+.odds-movement__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.odds-movement__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.odds-movement__legend-color {
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.odds-movement__legend-more {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .odds-movement {
+    padding: var(--space-3);
+  }
+
+  .odds-movement__outcomes {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .odds-movement__outcome {
+    padding: var(--space-2);
+  }
+
+  .odds-movement__bookmaker-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .odds-movement__legend {
+    gap: var(--space-2);
+  }
+}

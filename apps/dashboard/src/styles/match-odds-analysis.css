@@ -1,0 +1,105 @@
+.match-odds-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Global market selector */
+.match-odds-analysis__market-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.match-odds-analysis__markets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.match-odds-analysis__market {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.match-odds-analysis__market:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.match-odds-analysis__market--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+/* Point selector */
+.match-odds-analysis__points {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.match-odds-analysis__points-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.match-odds-analysis__points-select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.match-odds-analysis__points-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Sections */
+.match-odds-analysis__section {
+  /* No additional styles needed, uses existing match-page styles */
+}
+
+.match-odds-analysis__section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .match-odds-analysis__market-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .match-odds-analysis__points {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .match-odds-analysis__markets {
+    justify-content: center;
+  }
+}

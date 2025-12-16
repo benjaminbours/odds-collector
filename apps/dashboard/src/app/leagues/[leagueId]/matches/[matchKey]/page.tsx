@@ -6,8 +6,7 @@ import {
 } from "@odds-collector/shared";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { OddsChart } from "@/components/OddsChart";
-import { BookmakerComparison } from "@/components/BookmakerComparison";
+import { MatchOddsAnalysis } from "@/components/MatchOddsAnalysis";
 import "@/styles/match-page.css";
 
 interface PageProps {
@@ -111,41 +110,11 @@ export default async function MatchPage({ params }: PageProps) {
         <p className="match-page__date">{formattedDate}</p>
       </header>
 
-      <section className="match-page__section">
-        <h2 className="match-page__section-title">Odds Movement</h2>
-        <div className="match-page__charts">
-          <OddsChart
-            snapshots={match.snapshots}
-            outcome="home"
-            title={`${match.homeTeam} Win`}
-            homeTeam={match.homeTeam}
-            awayTeam={match.awayTeam}
-          />
-          <OddsChart
-            snapshots={match.snapshots}
-            outcome="draw"
-            title="Draw"
-            homeTeam={match.homeTeam}
-            awayTeam={match.awayTeam}
-          />
-          <OddsChart
-            snapshots={match.snapshots}
-            outcome="away"
-            title={`${match.awayTeam} Win`}
-            homeTeam={match.homeTeam}
-            awayTeam={match.awayTeam}
-          />
-        </div>
-      </section>
-
-      <section className="match-page__section">
-        <h2 className="match-page__section-title">Bookmaker Comparison</h2>
-        <BookmakerComparison
-          snapshots={match.snapshots}
-          homeTeam={match.homeTeam}
-          awayTeam={match.awayTeam}
-        />
-      </section>
+      <MatchOddsAnalysis
+        snapshots={match.snapshots}
+        homeTeam={match.homeTeam}
+        awayTeam={match.awayTeam}
+      />
     </div>
   );
 }

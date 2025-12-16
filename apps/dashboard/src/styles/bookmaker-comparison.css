@@ -13,11 +13,55 @@
   color: var(--color-text-muted);
 }
 
+.bookmaker-comparison__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
 .bookmaker-comparison__timing-selector {
   display: flex;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
   flex-wrap: wrap;
+}
+
+.bookmaker-comparison__display-toggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bookmaker-comparison__toggle-button {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bookmaker-comparison__toggle-button:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+.bookmaker-comparison__toggle-button:hover {
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.bookmaker-comparison__toggle-button--active {
+  background: var(--color-accent);
+  color: white;
+}
+
+.bookmaker-comparison__toggle-button--active:hover {
+  background: var(--color-accent);
+  color: white;
 }
 
 .bookmaker-comparison__timing-button {
