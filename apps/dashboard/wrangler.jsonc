@@ -17,19 +17,21 @@
       "service": "odds-dashboard"
     }
   ],
-  // Share the same D1 database as the collector
+  // Share the same D1 database as the collector (preview_database_id allows using --remote in dev)
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "odds-collector-db",
-      "database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651"
+      "database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651",
+      "preview_database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651"
     }
   ],
-  // Share the same R2 bucket
+  // Share the same R2 bucket (preview_bucket_name allows using --remote in dev)
   "r2_buckets": [
     {
       "binding": "ODDS_BUCKET",
-      "bucket_name": "soccer-predictor"
+      "bucket_name": "soccer-predictor",
+      "preview_bucket_name": "soccer-predictor"
     }
   ]
 }
