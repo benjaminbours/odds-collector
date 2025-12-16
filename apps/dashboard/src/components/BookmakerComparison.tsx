@@ -12,6 +12,9 @@ const TIMING_LABELS: Record<string, string> = {
   closing: "Closing",
 };
 
+type SortColumn = "home" | "draw" | "away" | "margin";
+type SortDirection = "asc" | "desc";
+
 interface BookmakerComparisonProps {
   snapshots: Record<string, OddsSnapshot>;
   homeTeam: string;
@@ -89,6 +92,18 @@ export function BookmakerComparison({
   const [selectedTiming, setSelectedTiming] = useState<string>(
     availableTimings[availableTimings.length - 1] || "closing"
   );
+  const [sortColumn, setSortColumn] = useState<SortColumn>("margin");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      // Default: descending for odds (higher = better), ascending for margin (lower = better)
+      setSortDirection(column === "margin" ? "asc" : "desc");
+    }
+  };
 
   const currentSnapshot = snapshots[selectedTiming];
 
@@ -114,7 +129,12 @@ export function BookmakerComparison({
       };
     })
     .filter((row) => row.home !== null && row.draw !== null && row.away !== null)
-    .sort((a, b) => (a.margin ?? 100) - (b.margin ?? 100));
+    .sort((a, b) => {
+      const aVal = a[sortColumn] ?? 0;
+      const bVal = b[sortColumn] ?? 0;
+      const multiplier = sortDirection === "asc" ? 1 : -1;
+      return (aVal - bVal) * multiplier;
+    });
 
   // Find best odds for each outcome
   const bestHome = Math.max(...rows.map((r) => r.home ?? 0));
@@ -144,11 +164,42 @@ export function BookmakerComparison({
           <thead>
             <tr>
               <th>Bookmaker</th>
-              <th>Home</th>
-              <th>Draw</th>
-              <th>Away</th>
-              <th title="Bookmaker's profit margin (lower = better value for bettors)">
-                Margin ⓘ
+              <th
+                className="bookmaker-comparison__sortable"
+                onClick={() => handleSort("home")}
+              >
+                Home
+                <span className={`bookmaker-comparison__sort-icon ${sortColumn === "home" ? "bookmaker-comparison__sort-icon--active" : ""}`}>
+                  {sortColumn === "home" && sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              </th>
+              <th
+                className="bookmaker-comparison__sortable"
+                onClick={() => handleSort("draw")}
+              >
+                Draw
+                <span className={`bookmaker-comparison__sort-icon ${sortColumn === "draw" ? "bookmaker-comparison__sort-icon--active" : ""}`}>
+                  {sortColumn === "draw" && sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              </th>
+              <th
+                className="bookmaker-comparison__sortable"
+                onClick={() => handleSort("away")}
+              >
+                Away
+                <span className={`bookmaker-comparison__sort-icon ${sortColumn === "away" ? "bookmaker-comparison__sort-icon--active" : ""}`}>
+                  {sortColumn === "away" && sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              </th>
+              <th
+                className="bookmaker-comparison__sortable"
+                onClick={() => handleSort("margin")}
+                title="Bookmaker's profit margin (lower = better value for bettors)"
+              >
+                Margin
+                <span className={`bookmaker-comparison__sort-icon ${sortColumn === "margin" ? "bookmaker-comparison__sort-icon--active" : ""}`}>
+                  {sortColumn === "margin" && sortDirection === "asc" ? "↑" : "↓"}
+                </span>
               </th>
             </tr>
           </thead>

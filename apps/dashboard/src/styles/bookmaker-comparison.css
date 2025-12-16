@@ -75,6 +75,36 @@
   cursor: help;
 }
 
+.bookmaker-comparison__sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.bookmaker-comparison__sortable:hover {
+  color: var(--color-accent);
+}
+
+.bookmaker-comparison__sort-icon {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.bookmaker-comparison__sort-icon--active {
+  opacity: 1;
+}
+
+.bookmaker-comparison__sortable:hover .bookmaker-comparison__sort-icon {
+  opacity: 0.5;
+}
+
+.bookmaker-comparison__sortable:hover .bookmaker-comparison__sort-icon--active {
+  opacity: 1;
+}
+
 .bookmaker-comparison__bookmaker {
   font-weight: 500;
   color: var(--color-text);
