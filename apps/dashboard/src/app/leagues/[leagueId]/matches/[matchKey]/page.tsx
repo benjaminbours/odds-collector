@@ -91,13 +91,14 @@ export default async function MatchPage({ params }: PageProps) {
   }
 
   const kickoffDate = new Date(match.kickoffTime);
-  const formattedDate = kickoffDate.toLocaleDateString("en-GB", {
+  const formattedDate = kickoffDate.toLocaleString(undefined, {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZoneName: "short",
   });
 
   return (

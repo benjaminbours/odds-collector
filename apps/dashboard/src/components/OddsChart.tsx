@@ -15,11 +15,12 @@ import "@/styles/odds-chart.css";
 
 const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
 const TIMING_LABELS: Record<string, string> = {
-  opening: "Opening",
+  opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
   closing: "Closing",
 };
+
 
 // Key bookmakers to show by default (sharp bookmakers)
 const KEY_BOOKMAKERS = ["pinnacle", "betfair_ex_uk", "bet365", "williamhill"];

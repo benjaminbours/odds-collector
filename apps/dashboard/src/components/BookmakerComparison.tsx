@@ -6,11 +6,24 @@ import "@/styles/bookmaker-comparison.css";
 
 const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
 const TIMING_LABELS: Record<string, string> = {
-  opening: "Opening",
+  opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
   closing: "Closing",
 };
+
+function formatSnapshotDateTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
 
 type SortColumn = "home" | "draw" | "away" | "margin";
 type SortDirection = "asc" | "desc";
@@ -144,19 +157,26 @@ export function BookmakerComparison({
   return (
     <div className="bookmaker-comparison">
       <div className="bookmaker-comparison__timing-selector">
-        {availableTimings.map((timing) => (
-          <button
-            key={timing}
-            className={`bookmaker-comparison__timing-button ${
-              selectedTiming === timing
-                ? "bookmaker-comparison__timing-button--active"
-                : ""
-            }`}
-            onClick={() => setSelectedTiming(timing)}
-          >
-            {TIMING_LABELS[timing]}
-          </button>
-        ))}
+        {availableTimings.map((timing) => {
+          const snapshot = snapshots[timing];
+          const dateTitle = snapshot
+            ? formatSnapshotDateTime(snapshot.metadata.timestamp)
+            : undefined;
+          return (
+            <button
+              key={timing}
+              className={`bookmaker-comparison__timing-button ${
+                selectedTiming === timing
+                  ? "bookmaker-comparison__timing-button--active"
+                  : ""
+              }`}
+              onClick={() => setSelectedTiming(timing)}
+              title={dateTitle}
+            >
+              {TIMING_LABELS[timing]}
+            </button>
+          );
+        })}
       </div>
 
       <div className="bookmaker-comparison__table-wrapper">
