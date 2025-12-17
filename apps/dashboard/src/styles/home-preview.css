@@ -1,0 +1,146 @@
+/*
+ * Home Preview Sections - BEM
+ * Styles for upcoming matches and steam moves preview on homepage
+ */
+
+/* Section header with view all link */
+.page__section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.page__view-all {
+  color: var(--color-accent-primary);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-base);
+}
+
+.page__view-all:hover {
+  color: var(--color-accent-hover);
+}
+
+/* Upcoming Matches */
+.home-preview__matches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.home-preview__match-wrapper {
+  position: relative;
+}
+
+.home-preview__league-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  z-index: 1;
+}
+
+/* Steam Moves Preview */
+.home-preview__steam-moves {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.home-preview__steam-move {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.home-preview__steam-move:hover {
+  border-color: var(--color-border-secondary);
+  background: var(--color-bg-tertiary);
+}
+
+.home-preview__steam-move--shortening {
+  border-left: 3px solid var(--color-success);
+}
+
+.home-preview__steam-move--drifting {
+  border-left: 3px solid var(--color-error-text);
+}
+
+.home-preview__steam-move-match {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.home-preview__steam-move-details {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.home-preview__steam-move-market {
+  color: var(--color-text-secondary);
+}
+
+.home-preview__steam-move-bookmaker {
+  color: var(--color-text-tertiary);
+}
+
+.home-preview__steam-move-change {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+.home-preview__steam-move-odds {
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.home-preview__steam-move-pct {
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-mono);
+}
+
+.home-preview__steam-move-pct--shortening {
+  color: var(--color-success);
+}
+
+.home-preview__steam-move-pct--drifting {
+  color: var(--color-error-text);
+}
+
+/* Empty state */
+.home-preview__empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-primary);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .page__section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .home-preview__steam-move-details {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+}
