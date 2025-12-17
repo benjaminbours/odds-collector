@@ -31,6 +31,7 @@ export class IndexBuilder {
    * @param leagueId League identifier
    * @param season Season (e.g., '2024-2025')
    * @param snapshots Array of snapshot paths that were collected
+   * @param options.rebuild If true, start fresh instead of loading existing index
    */
   async updateMatchIndex(
     leagueId: string,
@@ -43,10 +44,13 @@ export class IndexBuilder {
       timing: string;
       path: string;
       kickoffTime: string;
-    }>
+    }>,
+    options: { rebuild?: boolean } = {}
   ): Promise<void> {
-    // Load existing index or create new
-    let index = await this.storage.getIndex(leagueId, season, "by_match");
+    // Load existing index or create new (skip loading if rebuilding)
+    let index = options.rebuild
+      ? null
+      : await this.storage.getIndex(leagueId, season, "by_match");
 
     if (!index) {
       index = {

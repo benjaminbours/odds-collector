@@ -92,7 +92,8 @@ async function rebuildIndexes(leagueId: string, season: string) {
           matchDate: snapshot.metadata.date,
           eventId: snapshot.metadata.eventMetadata?.eventId || snapshot.odds.id,
           timing: snapshot.metadata.snapshotTiming,
-          path: `${leagueId}/${season}/${snapshotId}.json`,
+          // Full path from bucket root - consistent across dashboard, Rust backend, and collector
+          path: `odds_data_v2/leagues/${leagueId}/${season}/${snapshotId}.json`,
           markets: Array.from(marketsSet),
           kickoffTime: snapshot.odds.commenceTime,
         });
@@ -118,8 +119,10 @@ async function rebuildIndexes(leagueId: string, season: string) {
       return;
     }
 
-    console.log(`🔨 Building match index...`);
-    await indexBuilder.updateMatchIndex(leagueId, season, snapshotMetadata);
+    console.log(`🔨 Building match index (fresh rebuild)...`);
+    await indexBuilder.updateMatchIndex(leagueId, season, snapshotMetadata, {
+      rebuild: true,
+    });
     console.log(`✅ Match index built\n`);
 
     console.log(`🔨 Building derived indexes (by_date, by_team)...`);
