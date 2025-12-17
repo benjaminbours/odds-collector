@@ -28,22 +28,6 @@
   gap: var(--spacing-sm);
 }
 
-.home-preview__match-wrapper {
-  position: relative;
-}
-
-.home-preview__league-badge {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  background: var(--color-bg-tertiary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  z-index: 1;
-}
-
 /* Steam Moves Preview */
 .home-preview__steam-moves {
   display: flex;

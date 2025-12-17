@@ -23,6 +23,11 @@
   align-items: center;
 }
 
+.match-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
 .match-card__teams {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
@@ -33,6 +38,22 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin-top: var(--spacing-xs);
+}
+
+.match-card__right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.match-card__league {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 .match-card__snapshots {
@@ -56,4 +77,18 @@
 .match-card__snapshot-badge--unavailable {
   background-color: var(--color-bg-tertiary);
   color: var(--color-text-tertiary);
+}
+
+/* Mobile responsive for cards with league */
+@media (max-width: 640px) {
+  .match-card--with-league .match-card__content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .match-card--with-league .match-card__right {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

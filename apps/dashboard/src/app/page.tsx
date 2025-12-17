@@ -251,13 +251,12 @@ export default async function HomePage() {
         {upcomingMatches.length > 0 ? (
           <div className="home-preview__matches">
             {upcomingMatches.map((item) => (
-              <div key={`${item.leagueId}-${item.key}`} className="home-preview__match-wrapper">
-                <span className="home-preview__league-badge">{item.leagueName}</span>
-                <MatchCard
-                  match={{ ...item.match, key: item.key }}
-                  leagueId={item.leagueId}
-                />
-              </div>
+              <MatchCard
+                key={`${item.leagueId}-${item.key}`}
+                match={{ ...item.match, key: item.key }}
+                leagueId={item.leagueId}
+                leagueName={item.leagueName}
+              />
             ))}
           </div>
         ) : (
