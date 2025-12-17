@@ -257,9 +257,18 @@
 }
 
 /* Mobile styles */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .odds-movement {
     padding: var(--spacing-md);
+  }
+
+  .odds-movement__markets {
+    gap: var(--spacing-xs);
+  }
+
+  .odds-movement__market {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
   }
 
   .odds-movement__outcomes {
@@ -269,6 +278,7 @@
 
   .odds-movement__outcome {
     padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
   }
 
   .odds-movement__bookmaker-list {
@@ -277,5 +287,9 @@
 
   .odds-movement__legend {
     gap: var(--spacing-sm);
+  }
+
+  .odds-movement__bookmakers-toggle {
+    font-size: var(--font-size-sm);
   }
 }

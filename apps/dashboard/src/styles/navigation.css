@@ -6,6 +6,9 @@
 .navigation {
   background-color: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border-primary);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
 }
 
 .navigation__container {
@@ -21,10 +24,11 @@
 
 .navigation__logo {
   font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   transition: color var(--transition-base);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navigation__logo:hover {
@@ -70,20 +74,17 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .navigation__container {
+    height: 52px;
     padding: 0 var(--spacing-md);
     gap: var(--spacing-sm);
   }
 
   .navigation__logo {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-xl);
   }
 
+  /* Hide navigation links on mobile */
   .navigation__links {
-    gap: var(--spacing-xs);
-  }
-
-  .navigation__link {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
+    display: none;
   }
 }

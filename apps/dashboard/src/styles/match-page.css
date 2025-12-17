@@ -42,3 +42,35 @@
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--color-border-primary);
 }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .match-page {
+    padding: var(--spacing-md) 0;
+  }
+
+  .match-page__header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .match-page__league {
+    font-size: var(--font-size-sm);
+  }
+
+  .match-page__title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .match-page__date {
+    font-size: var(--font-size-md);
+  }
+
+  .match-page__section {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .match-page__section-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+  }
+}

@@ -42,4 +42,33 @@
 
 .breadcrumb__current {
   color: var(--color-text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .breadcrumb {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .breadcrumb__list {
+    font-size: var(--font-size-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .breadcrumb__item {
+    gap: var(--spacing-xs);
+  }
+
+  /* Hide "Home" on mobile - users can tap logo */
+  .breadcrumb__item:first-child {
+    display: none;
+  }
+
+  .breadcrumb__current {
+    max-width: 180px;
+  }
 }

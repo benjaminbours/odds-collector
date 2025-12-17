@@ -93,10 +93,26 @@
 }
 
 /* Mobile styles */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .match-odds-analysis {
+    gap: var(--spacing-lg);
+  }
+
   .match-odds-analysis__market-selector {
     flex-direction: column;
     align-items: stretch;
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .match-odds-analysis__markets {
+    justify-content: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .match-odds-analysis__market {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
   }
 
   .match-odds-analysis__points {
@@ -104,7 +120,16 @@
     justify-content: space-between;
   }
 
-  .match-odds-analysis__markets {
-    justify-content: center;
+  .match-odds-analysis__points-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .match-odds-analysis__points-select {
+    font-size: var(--font-size-sm);
+  }
+
+  .match-odds-analysis__section-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
   }
 }
