@@ -16,7 +16,7 @@ interface MatchWithKey extends MatchIndexEntry {
 }
 
 const TIMING_LABELS: Record<string, string> = {
-  opening: "O",
+  opening: "W",
   mid_week: "M",
   day_before: "D",
   closing: "C",

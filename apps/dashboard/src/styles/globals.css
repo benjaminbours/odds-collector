@@ -1,47 +1,87 @@
-/* CSS Reset and Variables */
+/*
+ * Theme Variables - OddsLab Dashboard
+ *
+ * Aligned with the OddsLab design system for consistency
+ * across the prediction application and dashboard.
+ */
+
 :root {
-  /* Colors - Dark Theme */
-  --color-bg-primary: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-tertiary: #334155;
-  --color-bg-hover: #475569;
+  /* ===== Color Palette ===== */
 
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  /* Background colors */
+  --color-bg-primary: #0f1116;      /* Main app background */
+  --color-bg-secondary: #1a1d24;    /* Cards, panels, navbar */
+  --color-bg-tertiary: #2a2f3a;     /* Inputs, buttons */
+  --color-bg-quaternary: #3a3f4a;   /* Hover states */
 
-  --color-border: #334155;
-  --color-border-hover: #475569;
+  /* Border colors */
+  --color-border-primary: #2a2f3a;   /* Default borders */
+  --color-border-secondary: #3a3f4a; /* Hover borders */
+  --color-border-tertiary: #4a4f5a;  /* Active/focus borders */
 
-  /* Accent Colors */
-  --color-purple-500: #8b5cf6;
-  --color-purple-600: #7c3aed;
-  --color-purple-700: #6d28d9;
+  /* Text colors */
+  --color-text-primary: #ffffff;     /* Main text */
+  --color-text-secondary: #888888;   /* Secondary/muted text */
+  --color-text-tertiary: #666666;    /* Very muted text */
+  --color-text-quaternary: #555555;  /* Dividers, subtle text */
 
-  --color-green-400: #4ade80;
-  --color-green-500: #22c55e;
-  --color-red-400: #f87171;
-  --color-red-500: #ef4444;
-  --color-amber-400: #fbbf24;
-  --color-blue-400: #60a5fa;
+  /* Accent colors */
+  --color-accent-primary: #4a9eff;   /* Primary blue - links, highlights */
+  --color-accent-secondary: #ffc107; /* Yellow/gold - secondary actions */
+  --color-accent-tertiary: #6ab4ff;  /* Lighter blue - hover states */
+  --color-accent-quaternary: #ffcd38;/* Lighter yellow - hover states */
 
-  /* Semantic aliases */
+  /* State colors */
+  --color-error-bg: #2a1515;         /* Error background */
+  --color-error-border: #993333;     /* Error border */
+  --color-error-text: #ff6666;       /* Error text */
+  --color-success: #4caf50;          /* Success states */
+  --color-warning: #ff9800;          /* Warning states */
+
+  /* Semantic aliases for backwards compatibility */
   --color-text: var(--color-text-primary);
+  --color-text-muted: var(--color-text-secondary);
   --color-surface: var(--color-bg-secondary);
-  --color-accent: var(--color-purple-500);
-  --color-success: var(--color-green-500);
-  --color-error: var(--color-red-500);
-  --color-warning: var(--color-amber-400);
+  --color-background: var(--color-bg-primary);
+  --color-border: var(--color-border-primary);
+  --color-border-hover: var(--color-border-secondary);
+  --color-accent: var(--color-accent-primary);
+  --color-error: var(--color-error-text);
 
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
+  /* ===== Typography ===== */
 
-  /* Spacing aliases for consistency */
+  --font-family-primary: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --font-size-xs: 0.688rem;    /* 11px - Extra small text */
+  --font-size-sm: 0.75rem;     /* 12px - Small text */
+  --font-size-base: 0.813rem;  /* 13px - Body text */
+  --font-size-md: 0.875rem;    /* 14px - Medium text */
+  --font-size-lg: 0.938rem;    /* 15px - Large text */
+  --font-size-xl: 1rem;        /* 16px - Extra large text */
+  --font-size-2xl: 1.125rem;   /* 18px - Heading 4 */
+  --font-size-3xl: 1.25rem;    /* 20px - Heading 3 */
+  --font-size-4xl: 1.5rem;     /* 24px - Heading 2 */
+  --font-size-5xl: 1.75rem;    /* 28px - Heading 2 tablet */
+  --font-size-6xl: 2rem;       /* 32px - Heading 1 */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ===== Spacing ===== */
+
+  --spacing-xs: 0.25rem;     /* 4px */
+  --spacing-sm: 0.5rem;      /* 8px */
+  --spacing-md: 0.75rem;     /* 12px */
+  --spacing-lg: 1rem;        /* 16px */
+  --spacing-xl: 1.25rem;     /* 20px */
+  --spacing-2xl: 1.5rem;     /* 24px */
+  --spacing-3xl: 2rem;       /* 32px */
+  --spacing-4xl: 3rem;       /* 48px */
+
+  /* Spacing aliases for backwards compatibility */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -51,26 +91,43 @@
   --space-8: 2rem;
   --space-10: 2.5rem;
 
-  /* Border Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* ===== Border Radius ===== */
 
-  /* Font Sizes */
-  --font-xs: 0.75rem;
-  --font-sm: 0.875rem;
-  --font-base: 1rem;
-  --font-lg: 1.125rem;
-  --font-xl: 1.25rem;
-  --font-2xl: 1.5rem;
-  --font-3xl: 1.875rem;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 50%;
 
-  /* Font Families */
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  /* ===== Shadows ===== */
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 200ms ease;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* Focus shadows */
+  --shadow-focus-primary: 0 0 0 2px rgba(74, 158, 255, 0.1);
+  --shadow-focus-secondary: 0 0 0 2px rgba(255, 193, 7, 0.1);
+
+  /* ===== Transitions ===== */
+
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* ===== Z-index ===== */
+
+  --z-index-base: 1;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-modal: 1000;
+  --z-index-tooltip: 2000;
+
+  /* ===== Layout ===== */
+
+  --layout-max-width: 1200px;
+  --navbar-height: 64px;
 }
 
 /* Reset */
@@ -89,9 +146,10 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-family-primary);
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font-size: var(--font-size-base);
   line-height: 1.5;
   min-height: 100vh;
 }
@@ -121,9 +179,9 @@ img {
 
 /* Utility Classes */
 .container {
-  max-width: 1280px;
+  max-width: var(--layout-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-lg);
 }
 
 .sr-only {

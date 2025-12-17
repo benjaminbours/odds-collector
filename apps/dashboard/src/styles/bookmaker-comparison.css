@@ -1,8 +1,13 @@
+/*
+ * Bookmaker Comparison Component - BEM
+ * Aligned with OddsLab design system
+ */
+
 .bookmaker-comparison {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
 }
 
 .bookmaker-comparison--empty {
@@ -10,79 +15,79 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .bookmaker-comparison__controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
   flex-wrap: wrap;
 }
 
 .bookmaker-comparison__timing-selector {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .bookmaker-comparison__display-toggle {
   display: flex;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .bookmaker-comparison__toggle-button {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-sm) var(--spacing-md);
   border: none;
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .bookmaker-comparison__toggle-button:first-child {
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border-primary);
 }
 
 .bookmaker-comparison__toggle-button:hover {
-  color: var(--color-text);
-  background: var(--color-background);
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
 }
 
 .bookmaker-comparison__toggle-button--active {
-  background: var(--color-accent);
+  background: var(--color-accent-primary);
   color: white;
 }
 
 .bookmaker-comparison__toggle-button--active:hover {
-  background: var(--color-accent);
+  background: var(--color-accent-tertiary);
   color: white;
 }
 
 .bookmaker-comparison__timing-button {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .bookmaker-comparison__timing-button:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
 }
 
 .bookmaker-comparison__timing-button--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
   color: white;
 }
 
@@ -97,20 +102,20 @@
 .bookmaker-comparison__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .bookmaker-comparison__table th,
 .bookmaker-comparison__table td {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-sm) var(--spacing-md);
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .bookmaker-comparison__table th {
-  color: var(--color-text-muted);
-  font-weight: 500;
-  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -122,11 +127,11 @@
 .bookmaker-comparison__sortable {
   cursor: pointer;
   user-select: none;
-  transition: color 0.2s ease;
+  transition: color var(--transition-base);
 }
 
 .bookmaker-comparison__sortable:hover {
-  color: var(--color-accent);
+  color: var(--color-accent-primary);
 }
 
 .bookmaker-comparison__sort-icon {
@@ -134,7 +139,7 @@
   width: 1em;
   text-align: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
 }
 
 .bookmaker-comparison__sort-icon--active {
@@ -150,21 +155,21 @@
 }
 
 .bookmaker-comparison__bookmaker {
-  font-weight: 500;
-  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
 }
 
 .bookmaker-comparison__odds {
   font-family: var(--font-mono);
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 
 .bookmaker-comparison__odds--best {
   color: var(--color-success);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .bookmaker-comparison__margin {
   font-family: var(--font-mono);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }

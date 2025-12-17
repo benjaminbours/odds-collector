@@ -1,43 +1,50 @@
-/* Navigation Component - BEM */
+/*
+ * Navigation Component - BEM
+ * Aligned with OddsLab design system
+ */
 
 .navigation {
   background-color: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .navigation__container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  max-width: 1280px;
+  height: var(--navbar-height);
+  max-width: var(--layout-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-2xl);
+  gap: var(--spacing-lg);
 }
 
 .navigation__logo {
-  font-size: var(--font-xl);
-  font-weight: 700;
-  color: var(--color-purple-500);
-  transition: color var(--transition-fast);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  transition: color var(--transition-base);
+  white-space: nowrap;
 }
 
 .navigation__logo:hover {
-  color: var(--color-purple-600);
+  color: var(--color-accent-primary);
+  cursor: pointer;
 }
 
 .navigation__links {
   display: flex;
-  gap: var(--spacing-sm);
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .navigation__link {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
-  font-size: var(--font-sm);
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  transition: all var(--transition-fast);
+  transition: all var(--transition-base);
 }
 
 .navigation__link:hover {
@@ -46,6 +53,37 @@
 }
 
 .navigation__link--active {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-accent-primary);
+}
+
+.navigation__link--secondary {
+  color: var(--color-accent-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.navigation__link--secondary:hover {
+  color: var(--color-accent-quaternary);
+  background-color: transparent;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .navigation__container {
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .navigation__logo {
+    font-size: var(--font-size-lg);
+  }
+
+  .navigation__links {
+    gap: var(--spacing-xs);
+  }
+
+  .navigation__link {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
 }

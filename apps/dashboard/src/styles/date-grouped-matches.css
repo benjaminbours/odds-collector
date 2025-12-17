@@ -1,32 +1,37 @@
+/*
+ * Date Grouped Matches Component - BEM
+ * Aligned with OddsLab design system
+ */
+
 .date-grouped-matches {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--spacing-2xl);
 }
 
 .date-grouped-matches__section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
 }
 
 .date-grouped-matches__section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Date group */
 .date-group {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .date-group--past {
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .date-group__header {
@@ -34,31 +39,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
-  transition: background 0.2s ease;
+  transition: background var(--transition-base);
 }
 
 .date-group__header:hover {
-  background: var(--color-background);
+  background: var(--color-bg-tertiary);
 }
 
 .date-group__header-left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--spacing-md);
   flex: 1;
   min-width: 0;
 }
 
 .date-group__chevron {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  transition: transform 0.2s ease;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: transform var(--transition-base);
   flex-shrink: 0;
 }
 
@@ -67,20 +72,21 @@
 }
 
 .date-group__date {
-  font-weight: 500;
-  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
   white-space: nowrap;
 }
 
 .date-group__count {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .date-group__timings {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--spacing-xs);
   flex-shrink: 0;
 }
 
@@ -90,34 +96,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: var(--color-background);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
   border-radius: var(--radius-sm);
   opacity: 0.4;
 }
 
 .date-group__timing--available {
   opacity: 1;
-  background: var(--color-accent);
+  background: var(--color-accent-primary);
   color: white;
 }
 
 /* Matches list */
 .date-group__matches {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-primary);
 }
 
 .date-group__match {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   text-decoration: none;
   color: inherit;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-base), border-color var(--transition-base);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .date-group__match:last-child {
@@ -125,13 +131,13 @@
 }
 
 .date-group__match:hover {
-  background: var(--color-background);
+  background: var(--color-bg-tertiary);
 }
 
 .date-group__match-time {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-family: var(--font-mono);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   width: 60px;
   flex-shrink: 0;
 }
@@ -139,14 +145,15 @@
 .date-group__match-teams {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
   flex: 1;
   min-width: 0;
 }
 
 .date-group__team {
-  font-weight: 500;
-  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
 }
 
 .date-group__team--home {
@@ -168,15 +175,15 @@
 }
 
 .date-group__vs {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   flex-shrink: 0;
 }
 
 .date-group__match-snapshots {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -186,11 +193,11 @@
   .date-group__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-2);
+    gap: var(--spacing-sm);
   }
 
   .date-group__timings {
-    margin-left: calc(var(--space-3) + 0.75rem + var(--space-3));
+    margin-left: calc(var(--spacing-md) + 0.75rem + var(--spacing-md));
   }
 
   .date-group__match {
@@ -210,7 +217,7 @@
     order: 3;
     width: 100%;
     flex: none;
-    margin-top: var(--space-1);
+    margin-top: var(--spacing-xs);
   }
 
   .date-group__team--home,

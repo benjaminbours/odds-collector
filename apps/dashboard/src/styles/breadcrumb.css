@@ -1,39 +1,45 @@
+/*
+ * Breadcrumb Component - BEM
+ * Aligned with OddsLab design system
+ */
+
 .breadcrumb {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--spacing-lg);
 }
 
 .breadcrumb__list {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--spacing-sm);
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
 }
 
 .breadcrumb__item {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacing-sm);
 }
 
 .breadcrumb__separator {
-  color: var(--color-text-muted);
+  color: var(--color-text-quaternary);
+  user-select: none;
 }
 
 .breadcrumb__link {
-  color: var(--color-accent);
+  color: var(--color-accent-primary);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color var(--transition-base);
 }
 
 .breadcrumb__link:hover {
-  color: var(--color-text);
+  color: var(--color-accent-tertiary);
   text-decoration: underline;
 }
 
 .breadcrumb__current {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }

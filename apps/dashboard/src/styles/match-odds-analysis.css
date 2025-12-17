@@ -1,7 +1,12 @@
+/*
+ * Match Odds Analysis Component - BEM
+ * Aligned with OddsLab design system
+ */
+
 .match-odds-analysis {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--spacing-2xl);
 }
 
 /* Global market selector */
@@ -9,38 +14,38 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
 }
 
 .match-odds-analysis__markets {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
 }
 
 .match-odds-analysis__market {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-primary);
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
 }
 
 .match-odds-analysis__market:hover {
-  border-color: var(--color-accent);
-  color: var(--color-text);
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
 }
 
 .match-odds-analysis__market--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
   color: white;
 }
 
@@ -48,29 +53,29 @@
 .match-odds-analysis__points {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
   margin-left: auto;
 }
 
 .match-odds-analysis__points-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
 }
 
 .match-odds-analysis__points-select {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-size: 0.875rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
   cursor: pointer;
   min-width: 80px;
 }
 
 .match-odds-analysis__points-select:focus {
   outline: none;
-  border-color: var(--color-accent);
+  border-color: var(--color-accent-primary);
 }
 
 /* Sections */
@@ -79,12 +84,12 @@
 }
 
 .match-odds-analysis__section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 /* Mobile styles */

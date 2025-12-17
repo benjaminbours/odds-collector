@@ -1,8 +1,13 @@
+/*
+ * Odds Chart Component - BEM
+ * Aligned with OddsLab design system
+ */
+
 .odds-chart {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
 }
 
 .odds-chart--empty {
@@ -17,31 +22,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--spacing-lg);
 }
 
 .odds-chart__title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .odds-chart__toggle {
   background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-2);
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .odds-chart__toggle:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-  border-color: var(--color-text-muted);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-secondary);
 }
 
 .odds-chart__container {
@@ -49,23 +54,23 @@
 }
 
 .odds-chart__empty-message {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
 }
 
 .odds-chart__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-primary);
 }
 
 .odds-chart__legend-item {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
 }
 
 .odds-chart__legend-line {
@@ -74,6 +79,6 @@
 }
 
 .odds-chart__legend-label {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
