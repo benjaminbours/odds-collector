@@ -1,0 +1,221 @@
+.date-grouped-matches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.date-grouped-matches__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.date-grouped-matches__section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+/* Date group */
+.date-group {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.date-group--past {
+  opacity: 0.8;
+}
+
+.date-group__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.date-group__header:hover {
+  background: var(--color-background);
+}
+
+.date-group__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.date-group__chevron {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.date-group__chevron--expanded {
+  transform: rotate(90deg);
+}
+
+.date-group__date {
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.date-group__count {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.date-group__timings {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.date-group__timing {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  opacity: 0.4;
+}
+
+.date-group__timing--available {
+  opacity: 1;
+  background: var(--color-accent);
+  color: white;
+}
+
+/* Matches list */
+.date-group__matches {
+  border-top: 1px solid var(--color-border);
+}
+
+.date-group__match {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.date-group__match:last-child {
+  border-bottom: none;
+}
+
+.date-group__match:hover {
+  background: var(--color-background);
+}
+
+.date-group__match-time {
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.date-group__match-teams {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.date-group__team {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.date-group__team--home {
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-group__team--away {
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-group__vs {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.date-group__match-snapshots {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .date-group__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .date-group__timings {
+    margin-left: calc(var(--space-3) + 0.75rem + var(--space-3));
+  }
+
+  .date-group__match {
+    flex-wrap: wrap;
+  }
+
+  .date-group__match-time {
+    order: 1;
+  }
+
+  .date-group__match-snapshots {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .date-group__match-teams {
+    order: 3;
+    width: 100%;
+    flex: none;
+    margin-top: var(--space-1);
+  }
+
+  .date-group__team--home,
+  .date-group__team--away {
+    flex: none;
+    max-width: 45%;
+  }
+}

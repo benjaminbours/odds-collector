@@ -7,6 +7,7 @@ import {
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { MatchOddsAnalysis } from "@/components/MatchOddsAnalysis";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import "@/styles/match-page.css";
 
 interface PageProps {
@@ -100,13 +101,20 @@ export default async function MatchPage({ params }: PageProps) {
     timeZoneName: "short",
   });
 
+  const matchTitle = `${match.homeTeam} vs ${match.awayTeam}`;
+
   return (
     <div className="match-page">
+      <Breadcrumb
+        items={[
+          { label: league.name, href: `/leagues/${leagueId}` },
+          { label: matchTitle },
+        ]}
+      />
+
       <header className="match-page__header">
         <p className="match-page__league">{league.name}</p>
-        <h1 className="match-page__title">
-          {match.homeTeam} vs {match.awayTeam}
-        </h1>
+        <h1 className="match-page__title">{matchTitle}</h1>
         <p className="match-page__date">{formattedDate}</p>
       </header>
 

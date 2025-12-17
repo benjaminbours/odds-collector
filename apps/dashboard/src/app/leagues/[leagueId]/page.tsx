@@ -1,31 +1,33 @@
-import { MatchCard } from "@/components/MatchCard";
+import { DateGroupedMatches } from "@/components/DateGroupedMatches";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { getLeagueById, CURRENT_SEASON } from "@odds-collector/shared";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { MatchIndex } from "@odds-collector/shared";
+import type { MatchIndex, DateIndex } from "@odds-collector/shared";
 import "@/styles/league-page.css";
 
 interface PageProps {
   params: Promise<{ leagueId: string }>;
 }
 
-async function getMatches(leagueId: string, season: string) {
+async function getMatchesData(leagueId: string, season: string) {
   const { env } = await getCloudflareContext({ async: true });
   const bucket = env.ODDS_BUCKET;
-  console.log("BUCKET", bucket);
 
-  const indexKey = `odds_data_v2/leagues/${leagueId}/${season}/by_match.json`;
-  console.log("HERE index key", indexKey);
-  const indexObject = await bucket.get(indexKey);
+  // Fetch both indexes in parallel
+  const [matchIndexObject, dateIndexObject] = await Promise.all([
+    bucket.get(`odds_data_v2/leagues/${leagueId}/${season}/by_match.json`),
+    bucket.get(`odds_data_v2/leagues/${leagueId}/${season}/by_date.json`),
+  ]);
 
-  console.log("HERE index object", indexObject);
-
-  if (!indexObject) {
+  if (!matchIndexObject || !dateIndexObject) {
     return null;
   }
 
-  const indexData: MatchIndex = await indexObject.json();
-  return indexData;
+  const matchIndex: MatchIndex = await matchIndexObject.json();
+  const dateIndex: DateIndex = await dateIndexObject.json();
+
+  return { matchIndex, dateIndex };
 }
 
 export default async function LeaguePage({ params }: PageProps) {
@@ -37,9 +39,9 @@ export default async function LeaguePage({ params }: PageProps) {
   }
 
   const season = CURRENT_SEASON;
-  const indexData = await getMatches(leagueId, season);
+  const data = await getMatchesData(leagueId, season);
 
-  if (!indexData) {
+  if (!data) {
     return (
       <div className="league-page">
         <header className="league-page__header">
@@ -53,60 +55,25 @@ export default async function LeaguePage({ params }: PageProps) {
     );
   }
 
-  // Convert matches to array and sort
-  const now = new Date();
-  const allMatches = Object.entries(indexData.matches)
-    .map(([key, match]) => ({
-      key,
-      ...match,
-    }))
-    .sort((a, b) => {
-      const timeA = new Date(a.kickoffTime).getTime();
-      const timeB = new Date(b.kickoffTime).getTime();
-      return timeB - timeA;
-    });
-
-  // Separate upcoming and past matches
-  const upcomingMatches = allMatches.filter(
-    (m) => new Date(m.kickoffTime) > now
-  );
-  const pastMatches = allMatches.filter((m) => new Date(m.kickoffTime) <= now);
+  const { matchIndex, dateIndex } = data;
+  const totalMatches = Object.keys(matchIndex.matches).length;
 
   return (
     <div className="league-page">
+      <Breadcrumb items={[{ label: league.name }]} />
+
       <header className="league-page__header">
         <h1 className="league-page__title">{league.name}</h1>
         <p className="league-page__subtitle">
-          Season {season} &middot; {allMatches.length} matches tracked
+          Season {season} &middot; {totalMatches} matches tracked
         </p>
       </header>
 
-      {upcomingMatches.length > 0 && (
-        <section className="league-page__section">
-          <h2 className="league-page__section-title">Upcoming Matches</h2>
-          <div className="league-page__matches">
-            {upcomingMatches.map((match) => (
-              <MatchCard key={match.key} match={match} leagueId={leagueId} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {pastMatches.length > 0 && (
-        <section className="league-page__section">
-          <h2 className="league-page__section-title">Recent Matches</h2>
-          <div className="league-page__matches">
-            {pastMatches.slice(0, 20).map((match) => (
-              <MatchCard key={match.key} match={match} leagueId={leagueId} />
-            ))}
-          </div>
-          {pastMatches.length > 20 && (
-            <p className="league-page__more">
-              Showing 20 of {pastMatches.length} past matches
-            </p>
-          )}
-        </section>
-      )}
+      <DateGroupedMatches
+        dateIndex={dateIndex}
+        matchIndex={matchIndex}
+        leagueId={leagueId}
+      />
     </div>
   );
 }
