@@ -403,7 +403,7 @@ export function OddsMovementChart({
           onClick={() => setShowBookmakerPanel(!showBookmakerPanel)}
         >
           <span>
-            Bookmakers ({selectedBookmakers.size}/{allBookmakers.size})
+            Bookmakers ({displayedBookmakers.length}/{allBookmakers.size})
           </span>
           <span className="odds-movement__bookmakers-arrow">
             {showBookmakerPanel ? "▲" : "▼"}
