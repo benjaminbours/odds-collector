@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LEAGUES } from "@odds-collector/shared";
 import type { SteamMove, SteamMovesData } from "@/app/steam-moves/page";
 import type { SteamMovesResponse } from "@/app/api/steam-moves/route";
+import { toSlug } from "@/lib/url-utils";
 import "@/styles/steam-moves-list.css";
 
 interface SteamMovesClientProps {
@@ -220,7 +221,7 @@ export function SteamMovesClient({ initialData, availableMarkets }: SteamMovesCl
         className={`steam-moves-card ${isPast ? "steam-moves-card--past" : ""}`}
       >
         <Link
-          href={`/leagues/${match.leagueId}/matches/${encodeURIComponent(match.matchKey)}`}
+          href={`/leagues/${toSlug(match.leagueId)}/matches/${toSlug(match.matchKey)}`}
           className="steam-moves-card__header"
         >
           <div className="steam-moves-card__match-info">

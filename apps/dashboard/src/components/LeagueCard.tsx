@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { LeagueConfig, CURRENT_SEASON } from '@odds-collector/shared';
+import { toSlug } from '@/lib/url-utils';
 import '@/styles/league-card.css';
 
 interface LeagueCardProps {
@@ -16,7 +17,7 @@ export function LeagueCard({ league }: LeagueCardProps) {
   const flag = FLAG_EMOJIS[league.countryCode] || '⚽';
 
   return (
-    <Link href={`/leagues/${league.id}`} className="league-card">
+    <Link href={`/leagues/${toSlug(league.id)}`} className="league-card">
       <div className="league-card__content">
         <span className="league-card__flag">{flag}</span>
         <div className="league-card__info">

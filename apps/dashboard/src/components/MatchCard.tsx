@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { MatchIndexEntry } from '@odds-collector/shared';
+import { toSlug } from '@/lib/url-utils';
 import '@/styles/match-card.css';
 
 interface MatchCardProps {
@@ -20,7 +21,7 @@ export function MatchCard({ match, leagueId }: MatchCardProps) {
 
   return (
     <Link
-      href={`/leagues/${leagueId}/matches/${encodeURIComponent(match.key)}`}
+      href={`/leagues/${toSlug(leagueId)}/matches/${toSlug(match.key)}`}
       className="match-card"
     >
       <div className="match-card__content">

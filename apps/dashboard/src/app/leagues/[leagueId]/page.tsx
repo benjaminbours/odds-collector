@@ -4,6 +4,7 @@ import { getLeagueById, CURRENT_SEASON } from "@odds-collector/shared";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MatchIndex, DateIndex } from "@odds-collector/shared";
+import { fromSlug } from "@/lib/url-utils";
 import "@/styles/league-page.css";
 
 interface PageProps {
@@ -31,7 +32,9 @@ async function getMatchesData(leagueId: string, season: string) {
 }
 
 export default async function LeaguePage({ params }: PageProps) {
-  const { leagueId } = await params;
+  const { leagueId: leagueSlug } = await params;
+  // Convert URL slug (dashes) to internal ID (underscores)
+  const leagueId = fromSlug(leagueSlug);
   const league = getLeagueById(leagueId);
 
   if (!league) {

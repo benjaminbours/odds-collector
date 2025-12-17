@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LEAGUES } from "@odds-collector/shared";
+import { toSlug } from "@/lib/url-utils";
 import "@/styles/steam-moves-list.css";
 
 interface SteamMove {
@@ -231,7 +232,7 @@ export function SteamMovesList() {
               className={`steam-moves-card ${isPast ? "steam-moves-card--past" : ""}`}
             >
               <Link
-                href={`/leagues/${group.leagueId}/matches/${group.matchKey}`}
+                href={`/leagues/${toSlug(group.leagueId)}/matches/${toSlug(group.matchKey)}`}
                 className="steam-moves-card__header"
               >
                 <div className="steam-moves-card__match-info">

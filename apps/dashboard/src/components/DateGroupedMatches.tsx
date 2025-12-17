@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { DateIndex, MatchIndex, MatchIndexEntry } from "@odds-collector/shared";
+import { toSlug } from "@/lib/url-utils";
 import "@/styles/date-grouped-matches.css";
 
 interface DateGroupedMatchesProps {
@@ -188,7 +189,7 @@ export function DateGroupedMatches({
             {matches.map((match) => (
               <Link
                 key={match.key}
-                href={`/leagues/${leagueId}/matches/${encodeURIComponent(match.key)}`}
+                href={`/leagues/${toSlug(leagueId)}/matches/${toSlug(match.key)}`}
                 className="date-group__match"
               >
                 <span className="date-group__match-time">

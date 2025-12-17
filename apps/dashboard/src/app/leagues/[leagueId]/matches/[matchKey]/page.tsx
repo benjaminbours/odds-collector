@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { MatchOddsAnalysis } from "@/components/MatchOddsAnalysis";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { fromSlug, toSlug } from "@/lib/url-utils";
 import "@/styles/match-page.css";
 
 interface PageProps {
@@ -74,10 +75,11 @@ async function getMatchDetails(
 }
 
 export default async function MatchPage({ params }: PageProps) {
-  const { leagueId, matchKey } = await params;
+  const { leagueId: leagueSlug, matchKey: matchSlug } = await params;
+  // Convert URL slugs (dashes) to internal IDs (underscores)
+  const leagueId = fromSlug(leagueSlug);
+  const matchKey = fromSlug(decodeURIComponent(matchSlug));
   const league = getLeagueById(leagueId);
-
-  console.log("HERE league", league);
 
   if (!league) {
     notFound();
@@ -107,7 +109,7 @@ export default async function MatchPage({ params }: PageProps) {
     <div className="match-page">
       <Breadcrumb
         items={[
-          { label: league.name, href: `/leagues/${leagueId}` },
+          { label: league.name, href: `/leagues/${toSlug(leagueId)}` },
           { label: matchTitle },
         ]}
       />
