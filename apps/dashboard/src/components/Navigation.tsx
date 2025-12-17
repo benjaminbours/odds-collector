@@ -7,7 +7,6 @@ import '@/styles/navigation.css';
 const navItems = [
   { href: '/', label: 'Leagues' },
   { href: '/steam-moves', label: 'Steam Moves' },
-  { href: '/track-record', label: 'Track Record' },
 ];
 
 export function Navigation() {

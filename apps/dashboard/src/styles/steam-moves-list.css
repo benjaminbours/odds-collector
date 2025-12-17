@@ -1,0 +1,347 @@
+/*
+ * Steam Moves List Component - BEM
+ * Aligned with OddsLab design system
+ */
+
+.steam-moves-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.steam-moves-list--loading,
+.steam-moves-list--error,
+.steam-moves-list--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+
+.steam-moves-list--error {
+  color: var(--color-error-text);
+}
+
+/* Filters */
+.steam-moves-list__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+}
+
+.steam-moves-list__filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.steam-moves-list__filter-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.steam-moves-list__filter-select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.steam-moves-list__filter-select:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+}
+
+.steam-moves-list__count {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Sections */
+.steam-moves-list__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.steam-moves-list__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+/* Date groups */
+.steam-moves-list__date-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.steam-moves-list__date-header {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: var(--spacing-xs) 0;
+}
+
+.steam-moves-list__empty-section {
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Match groups */
+.steam-moves-list__matches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Load more button */
+.steam-moves-list__load-more {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.steam-moves-list__load-more:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-accent-primary);
+}
+
+.steam-moves-list__load-more:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Steam moves card */
+.steam-moves-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.steam-moves-card--past {
+  opacity: 0.7;
+}
+
+.steam-moves-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition-base);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.steam-moves-card__header:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.steam-moves-card__match-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.steam-moves-card__league {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.steam-moves-card__teams {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.steam-moves-card__datetime {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.steam-moves-card__arrow {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-tertiary);
+}
+
+/* Individual moves */
+.steam-moves-card__moves {
+  display: flex;
+  flex-direction: column;
+}
+
+.steam-move {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr 140px 120px 80px;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-primary);
+  font-size: var(--font-size-sm);
+}
+
+.steam-move:last-child {
+  border-bottom: none;
+}
+
+.steam-move--shortening {
+  border-left: 3px solid var(--color-success);
+}
+
+.steam-move--drifting {
+  border-left: 3px solid var(--color-error-text);
+}
+
+.steam-move__market {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.steam-move__outcome {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.steam-move__bookmaker {
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steam-move__timing {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.steam-move__odds {
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+}
+
+.steam-move__change {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
+}
+
+.steam-move__change--shortening {
+  color: var(--color-success);
+}
+
+.steam-move__change--drifting {
+  color: var(--color-error-text);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .steam-moves-list__filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .steam-moves-list__filter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .steam-moves-list__filter-select {
+    min-width: 120px;
+  }
+
+  .steam-moves-list__count {
+    margin-left: 0;
+    text-align: center;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .steam-moves-card__header {
+    padding: var(--spacing-md);
+  }
+
+  .steam-moves-card__teams {
+    font-size: var(--font-size-md);
+  }
+
+  .steam-move {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: var(--spacing-xs) var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .steam-move__market {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .steam-move__change {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .steam-move__outcome {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .steam-move__bookmaker {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .steam-move__timing {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .steam-move__odds {
+    grid-column: 2;
+    grid-row: 3;
+    text-align: right;
+  }
+}

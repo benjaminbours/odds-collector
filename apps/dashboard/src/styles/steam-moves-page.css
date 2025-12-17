@@ -1,0 +1,43 @@
+/*
+ * Steam Moves Page - BEM
+ * Aligned with OddsLab design system
+ */
+
+.steam-moves-page {
+  padding: var(--spacing-lg) 0;
+}
+
+.steam-moves-page__header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.steam-moves-page__title {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.steam-moves-page__subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .steam-moves-page {
+    padding: var(--spacing-md) 0;
+  }
+
+  .steam-moves-page__header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .steam-moves-page__title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .steam-moves-page__subtitle {
+    font-size: var(--font-size-md);
+  }
+}

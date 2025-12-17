@@ -1,32 +1,54 @@
-import { NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
-import type { MatchIndex, OddsSnapshot, BookmakerMarket } from '@odds-collector/shared';
-import { LEAGUES, CURRENT_SEASON } from '@odds-collector/shared';
-import type { SteamMove } from '@/app/steam-moves/page';
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { SteamMovesClient } from "@/components/SteamMovesClient";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { MatchIndex, OddsSnapshot, BookmakerMarket } from "@odds-collector/shared";
+import { LEAGUES, CURRENT_SEASON } from "@odds-collector/shared";
+import "@/styles/steam-moves-page.css";
 
-export interface SteamMovesResponse {
+// Revalidate every 30 minutes
+export const revalidate = 1800;
+
+export interface SteamMove {
+  leagueId: string;
+  matchKey: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoffTime: string;
+  market: string;
+  marketLabel: string;
+  outcome: string;
+  point?: number;
+  fromTiming: string;
+  toTiming: string;
+  bookmaker: string;
+  fromOdds: number;
+  toOdds: number;
+  movement: number;
+  direction: "shortening" | "drifting";
+}
+
+export interface SteamMovesData {
   season: string;
   steamMoves: SteamMove[];
   generatedAt: string;
+  availableMarkets: string[];
   hasMorePast: boolean;
-  oldestDate?: string;
 }
 
-const TIMING_ORDER = ['opening', 'mid_week', 'day_before', 'closing'];
+const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
 const STEAM_THRESHOLD = 5;
 
 // Markets to include (normalized keys)
 const ALLOWED_MARKETS = ["h2h", "spreads", "alternate_spreads", "totals", "alternate_totals", "btts", "double_chance"];
 
-// Market display names
 const MARKET_LABELS: Record<string, string> = {
-  h2h: 'Money Line',
-  spreads: 'Spread',
-  alternate_spreads: 'Spread',
-  totals: 'Totals',
-  alternate_totals: 'Totals',
-  btts: 'Both Teams to Score',
-  double_chance: 'Double Chance',
+  h2h: "Money Line",
+  spreads: "Spread",
+  alternate_spreads: "Spread",
+  totals: "Totals",
+  alternate_totals: "Totals",
+  btts: "Both Teams to Score",
+  double_chance: "Double Chance",
 };
 
 function getMarketLabel(marketKey: string): string {
@@ -69,26 +91,24 @@ function findMatchingOutcome(
   });
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const season = searchParams.get('season') || CURRENT_SEASON;
+// Only fetch matches within a date range for performance
+async function getSteamMoves(): Promise<SteamMovesData> {
+  const season = CURRENT_SEASON;
+  const now = new Date();
 
-  // Pagination parameters
-  const beforeDate = searchParams.get('before'); // Load matches before this date
-  const daysToLoad = parseInt(searchParams.get('days') || '14', 10);
+  // Calculate date boundaries: upcoming (next 14 days) + recent past (last 7 days)
+  const pastCutoff = new Date(now);
+  pastCutoff.setDate(pastCutoff.getDate() - 7);
+  const futureCutoff = new Date(now);
+  futureCutoff.setDate(futureCutoff.getDate() + 14);
 
   try {
     const { env } = await getCloudflareContext({ async: true });
     const bucket = env.ODDS_BUCKET;
 
-    // Calculate date range
-    const endDate = beforeDate ? new Date(beforeDate) : new Date();
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - daysToLoad);
-
     const steamMoves: SteamMove[] = [];
+    const marketsFound = new Set<string>();
     let hasOlderMatches = false;
-    let oldestMatchDate: string | undefined;
 
     for (const league of LEAGUES) {
       const indexKey = `odds_data_v2/leagues/${league.id}/${season}/by_match.json`;
@@ -101,14 +121,14 @@ export async function GET(request: Request) {
       // Filter matches by date range
       const matchEntries = Object.entries(indexData.matches).filter(([, matchEntry]) => {
         const kickoff = new Date(matchEntry.kickoffTime);
-        if (kickoff < startDate) {
+        if (kickoff < pastCutoff) {
           hasOlderMatches = true;
           return false;
         }
-        return kickoff < endDate;
+        return kickoff <= futureCutoff;
       });
 
-      // Process matches in parallel batches
+      // Process matches in parallel batches for better performance
       const batchSize = 10;
       for (let i = 0; i < matchEntries.length; i += batchSize) {
         const batch = matchEntries.slice(i, i + batchSize);
@@ -119,11 +139,6 @@ export async function GET(request: Request) {
           );
 
           if (availableTimings.length < 2) return;
-
-          // Track oldest date
-          if (!oldestMatchDate || matchEntry.kickoffTime < oldestMatchDate) {
-            oldestMatchDate = matchEntry.kickoffTime;
-          }
 
           // Fetch all snapshots for this match
           const snapshotPromises = availableTimings.map(async (timing) => {
@@ -165,6 +180,9 @@ export async function GET(request: Request) {
                 );
                 if (!fromMarket) continue;
 
+                const normalizedLabel = getMarketLabel(toMarket.key);
+                marketsFound.add(normalizedLabel);
+
                 const fromOutcomes = getOutcomesFromMarket(fromMarket);
                 const toOutcomes = getOutcomesFromMarket(toMarket);
 
@@ -190,7 +208,7 @@ export async function GET(request: Request) {
                       awayTeam: matchEntry.awayTeam,
                       kickoffTime: matchEntry.kickoffTime,
                       market: toMarket.key,
-                      marketLabel: getMarketLabel(toMarket.key),
+                      marketLabel: normalizedLabel,
                       outcome: toOutcome.name,
                       point: toOutcome.point,
                       fromTiming,
@@ -199,7 +217,7 @@ export async function GET(request: Request) {
                       fromOdds: fromOutcome.price,
                       toOdds: toOutcome.price,
                       movement,
-                      direction: movement < 0 ? 'shortening' : 'drifting',
+                      direction: movement < 0 ? "shortening" : "drifting",
                     });
                   }
                 }
@@ -210,25 +228,50 @@ export async function GET(request: Request) {
       }
     }
 
-    // Sort by kickoff time (most recent first for past matches)
+    // Sort by kickoff time (chronologically)
     steamMoves.sort((a, b) =>
-      new Date(b.kickoffTime).getTime() - new Date(a.kickoffTime).getTime()
+      new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
     );
 
-    const response: SteamMovesResponse = {
+    return {
       season,
       steamMoves,
       generatedAt: new Date().toISOString(),
+      availableMarkets: Array.from(marketsFound).sort(),
       hasMorePast: hasOlderMatches,
-      oldestDate: oldestMatchDate,
     };
-
-    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error detecting steam moves:', error);
-    return NextResponse.json(
-      { error: 'Failed to detect steam moves' },
-      { status: 500 }
-    );
+    console.error("Error fetching steam moves:", error);
+    return {
+      season,
+      steamMoves: [],
+      generatedAt: new Date().toISOString(),
+      availableMarkets: [],
+      hasMorePast: false,
+    };
   }
+}
+
+export default async function SteamMovesPage() {
+  const data = await getSteamMoves();
+
+  return (
+    <main className="container">
+      <div className="steam-moves-page">
+        <Breadcrumb items={[{ label: "Steam Moves" }]} />
+
+        <header className="steam-moves-page__header">
+          <h1 className="steam-moves-page__title">Steam Moves</h1>
+          <p className="steam-moves-page__subtitle">
+            Significant odds movements (&gt;5%) detected across bookmakers
+          </p>
+        </header>
+
+        <SteamMovesClient
+          initialData={data}
+          availableMarkets={data.availableMarkets}
+        />
+      </div>
+    </main>
+  );
 }
