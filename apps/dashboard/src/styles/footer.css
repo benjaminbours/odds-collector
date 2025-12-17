@@ -41,9 +41,16 @@
   color: var(--color-accent-hover);
 }
 
+.footer__data-source {
+  margin: 0;
+  margin-top: var(--spacing-md);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
 .footer__copyright {
   margin: 0;
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
   color: var(--color-text-tertiary);
   font-size: var(--font-size-xs);
 }

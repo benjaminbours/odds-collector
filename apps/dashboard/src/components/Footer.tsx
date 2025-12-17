@@ -57,6 +57,17 @@ export function Footer() {
             Twitter
           </a>
         </div>
+        <p className="footer__data-source">
+          Odds data provided by{" "}
+          <a
+            href="https://the-odds-api.com"
+            className="footer__link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            The Odds API
+          </a>
+        </p>
         <p className="footer__copyright">
           © 2025 OddsLab. All rights reserved.
         </p>
