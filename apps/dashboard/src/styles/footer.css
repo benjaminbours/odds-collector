@@ -1,0 +1,60 @@
+/*
+ * Footer Component - BEM
+ * Consistent with OddsLab landing page
+ */
+
+.footer {
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  background: var(--color-bg-primary);
+  border-top: 1px solid var(--color-border-primary);
+  text-align: center;
+  margin-top: auto;
+}
+
+.footer__content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer__text {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.footer__links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-lg);
+}
+
+.footer__link {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+  font-size: var(--font-size-sm);
+}
+
+.footer__link:hover {
+  color: var(--color-accent-hover);
+}
+
+.footer__copyright {
+  margin: 0;
+  margin-top: var(--spacing-lg);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .footer {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+
+  .footer__links {
+    gap: var(--spacing-md);
+  }
+}

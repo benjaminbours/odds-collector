@@ -30,6 +30,7 @@
   --color-accent-secondary: #ffc107; /* Yellow/gold - secondary actions */
   --color-accent-tertiary: #6ab4ff;  /* Lighter blue - hover states */
   --color-accent-quaternary: #ffcd38;/* Lighter yellow - hover states */
+  --color-accent-hover: #6ab4ff;     /* Hover state for primary accent */
 
   /* State colors */
   --color-error-bg: #2a1515;         /* Error background */
@@ -152,6 +153,8 @@ body {
   font-size: var(--font-size-base);
   line-height: 1.5;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -179,9 +182,11 @@ img {
 
 /* Utility Classes */
 .container {
+  width: 100%;
   max-width: var(--layout-max-width);
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
+  flex: 1;
 }
 
 .sr-only {

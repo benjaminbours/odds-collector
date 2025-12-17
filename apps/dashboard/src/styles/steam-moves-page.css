@@ -4,6 +4,7 @@
  */
 
 .steam-moves-page {
+  width: 100%;
   padding: var(--spacing-lg) 0;
 }
 
