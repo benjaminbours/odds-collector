@@ -19,6 +19,7 @@ import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { TimingPresets } from "../config/timingPresets";
 import { IndexBuilder } from "../core/IndexBuilder";
+import { AggregateBuilder } from "../core/AggregateBuilder";
 import { normalizeTeamName } from "@footdata/shared";
 import { getLeagueConfig } from "../config/leagues";
 import { ValueBetService } from "../core/ValueBetService";
@@ -181,6 +182,36 @@ export default {
           console.error(`Failed to build indexes for ${leagueId}:`, error);
           // Continue with other leagues even if one fails
         }
+      }
+
+      // Phase 4: Build aggregates for dashboard
+      console.log("\n📊 Phase 4: Building Dashboard Aggregates");
+      const aggregateBuilder = new AggregateBuilder({
+        storage: new R2Storage({
+          accountId: env.R2_ACCOUNT_ID,
+          accessKeyId: env.R2_ACCESS_KEY_ID,
+          secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+          bucketName: "soccer-predictor",
+          basePath: "odds_data_v2",
+        }),
+      });
+
+      const season = inferCurrentSeason();
+
+      // Build steam moves for each league (with caching for past matches)
+      for (const leagueId of leagueIds) {
+        try {
+          await aggregateBuilder.buildLeagueSteamMoves(leagueId, season);
+        } catch (error) {
+          console.error(`Failed to build steam moves for ${leagueId}:`, error);
+        }
+      }
+
+      // Build homepage aggregate (cross-league data)
+      try {
+        await aggregateBuilder.buildHomepageData(season);
+      } catch (error) {
+        console.error("Failed to build homepage data:", error);
       }
 
       console.log("Odds collection completed successfully");
