@@ -37,4 +37,9 @@
       "preview_bucket_name": "soccer-predictor",
     },
   ],
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  }
 }
