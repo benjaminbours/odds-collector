@@ -22,18 +22,42 @@
   gap: var(--spacing-lg);
 }
 
+.navigation__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
 .navigation__logo {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   transition: color var(--transition-base);
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .navigation__logo:hover {
   color: var(--color-accent-primary);
   cursor: pointer;
+}
+
+.navigation__separator {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-light);
+}
+
+.navigation__app-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent-primary);
+  white-space: nowrap;
+  transition: color var(--transition-base);
+}
+
+.navigation__app-name:hover {
+  color: var(--color-accent-secondary);
 }
 
 .navigation__links {
@@ -80,7 +104,15 @@
   }
 
   .navigation__logo {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
+  }
+
+  .navigation__separator {
+    font-size: var(--font-size-md);
+  }
+
+  .navigation__app-name {
+    font-size: var(--font-size-sm);
   }
 
   /* Hide navigation links on mobile */

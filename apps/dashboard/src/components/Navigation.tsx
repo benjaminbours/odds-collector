@@ -15,9 +15,20 @@ export function Navigation() {
   return (
     <nav className="navigation">
       <div className="navigation__container">
-        <Link href="/" className="navigation__logo">
-          OddsLab
-        </Link>
+        <div className="navigation__brand">
+          <a
+            href="https://oddslab.gg"
+            className="navigation__logo"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            OddsLab
+          </a>
+          <span className="navigation__separator">/</span>
+          <Link href="/" className="navigation__app-name">
+            Bookmaker Intelligence
+          </Link>
+        </div>
         <div className="navigation__links">
           {navItems.map((item) => {
             const isActive =
