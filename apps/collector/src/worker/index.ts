@@ -184,8 +184,10 @@ export default {
         }
       }
 
-      // Phase 4: Build aggregates for dashboard
-      console.log("\n📊 Phase 4: Building Dashboard Aggregates");
+      // Phase 4: Build homepage aggregate for dashboard
+      // Note: Steam moves are built separately via local script (generate-steam-moves-cache.ts)
+      // to avoid hitting Cloudflare's 50 subrequest limit
+      console.log("\n📊 Phase 4: Building Homepage Aggregate");
       const aggregateBuilder = new AggregateBuilder({
         storage: new R2Storage({
           accountId: env.R2_ACCOUNT_ID,
@@ -198,16 +200,7 @@ export default {
 
       const season = inferCurrentSeason();
 
-      // Build steam moves for each league (with caching for past matches)
-      for (const leagueId of leagueIds) {
-        try {
-          await aggregateBuilder.buildLeagueSteamMoves(leagueId, season);
-        } catch (error) {
-          console.error(`Failed to build steam moves for ${leagueId}:`, error);
-        }
-      }
-
-      // Build homepage aggregate (cross-league data)
+      // Build homepage aggregate (reads pre-computed steam_moves.json files)
       try {
         await aggregateBuilder.buildHomepageData(season);
       } catch (error) {
