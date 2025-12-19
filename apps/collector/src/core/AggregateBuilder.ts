@@ -105,15 +105,25 @@ export class AggregateBuilder {
   }
 
   /**
-   * Build steam moves for a single league with caching for past matches
+   * Build steam moves for a single league (optimized for Cloudflare Workers)
    *
-   * Past matches are cached permanently (steam moves never change after match ends)
-   * Upcoming matches are always recomputed (odds may have changed)
+   * Strategy to minimize R2 requests:
+   * 1. Load existing aggregate file (1 GET) - contains all past match steam moves
+   * 2. Keep steam moves for past matches from existing aggregate (0 requests)
+   * 3. Only compute steam moves for upcoming matches (few GETs)
+   * 4. Save updated aggregate (1 PUT)
+   *
+   * This keeps total R2 requests low (~5-10) instead of 50+ per league.
    */
   async buildLeagueSteamMoves(leagueId: string, season: string): Promise<void> {
     console.log(`\n📊 Building steam moves for ${leagueId}/${season}...`);
 
     const now = new Date();
+
+    // Step 1: Load existing aggregate (1 R2 GET)
+    const existingAggregate = await this.getLeagueSteamMoves(leagueId, season);
+
+    // Step 2: Load match index to find upcoming matches (1 R2 GET)
     const matchIndex = await this.storage.getIndex(
       leagueId,
       season,
@@ -125,48 +135,77 @@ export class AggregateBuilder {
       return;
     }
 
-    const allSteamMoves: SteamMove[] = [];
-    const marketsFound = new Set<string>();
-    let cachedCount = 0;
-    let computedCount = 0;
-
     const matchEntries = Object.entries(matchIndex.matches);
-    console.log(`  📋 Processing ${matchEntries.length} matches...`);
+    const marketsFound = new Set<string>();
 
-    for (const [matchKey, match] of matchEntries) {
-      const isPast = new Date(match.kickoffTime) < now;
+    // Step 3: Build a map of existing steam moves by matchKey for past matches
+    // This avoids making any R2 requests for past matches that are already cached
+    const existingSteamMovesByMatch = new Map<string, SteamMove[]>();
 
-      if (isPast) {
-        // Try to use cached steam moves for past matches
-        const cached = await this.getSteamMovesCache(
+    if (existingAggregate) {
+      for (const move of existingAggregate.steamMoves) {
+        if (!existingSteamMovesByMatch.has(move.matchKey)) {
+          existingSteamMovesByMatch.set(move.matchKey, []);
+        }
+        existingSteamMovesByMatch.get(move.matchKey)!.push(move);
+      }
+      console.log(`  📦 Loaded existing aggregate with ${existingAggregate.steamMoves.length} steam moves`);
+    }
+
+    // Step 4: Categorize matches and determine which need computation
+    const pastMatches = matchEntries.filter(
+      ([, match]) => new Date(match.kickoffTime) < now
+    );
+    const upcomingMatches = matchEntries.filter(
+      ([, match]) => new Date(match.kickoffTime) >= now
+    );
+
+    // Step 5: For past matches, use existing data or compute if missing
+    const pastSteamMoves: SteamMove[] = [];
+    let pastFromCache = 0;
+    let pastComputed = 0;
+
+    for (const [matchKey, match] of pastMatches) {
+      const existing = existingSteamMovesByMatch.get(matchKey);
+      if (existing && existing.length > 0) {
+        // Use cached steam moves
+        pastSteamMoves.push(...existing);
+        existing.forEach((m) => marketsFound.add(m.marketLabel));
+        pastFromCache++;
+      } else {
+        // Match just became "past" or was never computed - compute now
+        // This handles the transition from upcoming to past
+        const moves = await this.computeMatchSteamMoves(
           leagueId,
           season,
-          matchKey
+          matchKey,
+          match
         );
-        if (cached) {
-          allSteamMoves.push(...cached.steamMoves);
-          cached.steamMoves.forEach((m) => marketsFound.add(m.marketLabel));
-          cachedCount++;
-          continue;
-        }
+        pastSteamMoves.push(...moves);
+        moves.forEach((m) => marketsFound.add(m.marketLabel));
+        pastComputed++;
       }
+    }
 
-      // Compute steam moves for this match
+    console.log(`  📋 Past matches: ${pastFromCache} from cache, ${pastComputed} newly computed`);
+    console.log(`  📋 Computing steam moves for ${upcomingMatches.length} upcoming matches...`);
+
+    // Step 6: Compute steam moves for upcoming matches (few R2 GETs)
+    const upcomingSteamMoves: SteamMove[] = [];
+
+    for (const [matchKey, match] of upcomingMatches) {
       const moves = await this.computeMatchSteamMoves(
         leagueId,
         season,
         matchKey,
         match
       );
-      allSteamMoves.push(...moves);
+      upcomingSteamMoves.push(...moves);
       moves.forEach((m) => marketsFound.add(m.marketLabel));
-      computedCount++;
-
-      // Cache if match is past (final data that won't change)
-      if (isPast && moves.length >= 0) {
-        await this.saveSteamMovesCache(leagueId, season, matchKey, moves);
-      }
     }
+
+    // Step 7: Merge past and upcoming steam moves
+    const allSteamMoves = [...pastSteamMoves, ...upcomingSteamMoves];
 
     // Sort by kickoff time (chronologically)
     allSteamMoves.sort(
@@ -174,7 +213,7 @@ export class AggregateBuilder {
         new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
     );
 
-    // Save aggregated steam moves file
+    // Step 8: Save aggregated steam moves file (1 R2 PUT)
     const aggregate: LeagueSteamMovesAggregate = {
       leagueId,
       season,
@@ -185,8 +224,8 @@ export class AggregateBuilder {
 
     await this.saveLeagueSteamMoves(leagueId, season, aggregate);
 
-    console.log(`  ✅ Steam moves built: ${allSteamMoves.length} moves`);
-    console.log(`     (${cachedCount} cached, ${computedCount} computed)`);
+    console.log(`  ✅ Steam moves built: ${allSteamMoves.length} total`);
+    console.log(`     (${pastFromCache} past cached, ${pastComputed} past computed, ${upcomingMatches.length} upcoming)`);
   }
 
   /**
