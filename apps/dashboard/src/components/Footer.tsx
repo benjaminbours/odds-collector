@@ -1,4 +1,5 @@
 import "@/styles/footer.css";
+import packageJson from "../../package.json";
 
 export function Footer() {
   return (
@@ -69,7 +70,7 @@ export function Footer() {
           </a>
         </p>
         <p className="footer__copyright">
-          © 2025 OddsLab. All rights reserved.
+          © 2025 OddsLab. All rights reserved. | v{packageJson.version}
         </p>
       </div>
     </footer>
