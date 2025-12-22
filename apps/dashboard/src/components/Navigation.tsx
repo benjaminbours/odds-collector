@@ -40,7 +40,7 @@ export function Navigation() {
               : 'navigation__link';
 
             return (
-              <Link key={item.href} href={item.href} className={className}>
+              <Link key={item.href} href={item.href} className={className} prefetch={false}>
                 {item.label}
               </Link>
             );

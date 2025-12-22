@@ -177,18 +177,54 @@ export function SteamMovesClient({ initialData, availableMarkets }: SteamMovesCl
     return { upcomingDateGroups: upcoming, pastDateGroups: past };
   }, [filteredMoves]);
 
-  const loadMorePast = async () => {
-    if (!oldestDate || loadingMore) return;
+  const [recentLoaded, setRecentLoaded] = useState(false);
+
+  const loadRecent = async () => {
+    if (loadingMore || recentLoaded) return;
 
     setLoadingMore(true);
     try {
-      const response = await fetch(
-        `/api/steam-moves?before=${encodeURIComponent(oldestDate)}&days=14`
-      );
-      if (!response.ok) throw new Error("Failed to load more");
+      const response = await fetch('/api/steam-moves?type=recent');
+      if (!response.ok) throw new Error("Failed to load recent");
 
       const data: SteamMovesResponse = await response.json();
       setSteamMoves((prev) => [...prev, ...data.steamMoves]);
+      setHasMorePast(data.hasMorePast);
+      setRecentLoaded(true);
+      if (data.oldestDate) {
+        setOldestDate(data.oldestDate);
+      }
+    } catch (error) {
+      console.error("Error loading recent steam moves:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMorePast = async () => {
+    if (!oldestDate || loadingMore) return;
+
+    // First load recent if not loaded yet
+    if (!recentLoaded) {
+      await loadRecent();
+      return;
+    }
+
+    // Then load older dates one at a time
+    setLoadingMore(true);
+    try {
+      // Calculate the date before the oldest we have
+      const oldestDateObj = new Date(oldestDate);
+      oldestDateObj.setDate(oldestDateObj.getDate() - 1);
+      const dateToLoad = oldestDateObj.toISOString().split('T')[0];
+
+      const response = await fetch(`/api/steam-moves?date=${dateToLoad}`);
+      if (!response.ok) throw new Error("Failed to load more");
+
+      const data: SteamMovesResponse = await response.json();
+      if (data.steamMoves.length > 0) {
+        setSteamMoves((prev) => [...prev, ...data.steamMoves]);
+      }
       setHasMorePast(data.hasMorePast);
       if (data.oldestDate) {
         setOldestDate(data.oldestDate);
@@ -369,7 +405,7 @@ export function SteamMovesClient({ initialData, availableMarkets }: SteamMovesCl
       </section>
 
       {/* Past section */}
-      {pastDateGroups.length > 0 && (
+      {(pastDateGroups.length > 0 || hasMorePast) && (
         <section className="steam-moves-list__section">
           <h2 className="steam-moves-list__section-title">Past</h2>
           {pastDateGroups.map((dateGroup) => (
@@ -390,7 +426,7 @@ export function SteamMovesClient({ initialData, availableMarkets }: SteamMovesCl
               onClick={loadMorePast}
               disabled={loadingMore}
             >
-              {loadingMore ? "Loading..." : "Load older matches"}
+              {loadingMore ? "Loading..." : recentLoaded ? "Load older matches" : "Load recent matches"}
             </button>
           )}
         </section>

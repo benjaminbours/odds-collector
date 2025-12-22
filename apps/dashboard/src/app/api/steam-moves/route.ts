@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import type { MatchIndex, OddsSnapshot, BookmakerMarket } from '@odds-collector/shared';
 import { LEAGUES, CURRENT_SEASON } from '@odds-collector/shared';
 import type { SteamMove } from '@/app/steam-moves/page';
 
@@ -12,212 +11,127 @@ export interface SteamMovesResponse {
   oldestDate?: string;
 }
 
-const TIMING_ORDER = ['opening', 'mid_week', 'day_before', 'closing'];
-const STEAM_THRESHOLD = 5;
-
-// Markets to include (normalized keys)
-const ALLOWED_MARKETS = ["h2h", "spreads", "alternate_spreads", "totals", "alternate_totals", "btts", "double_chance"];
-
-// Market display names
-const MARKET_LABELS: Record<string, string> = {
-  h2h: 'Money Line',
-  spreads: 'Spread',
-  alternate_spreads: 'Spread',
-  totals: 'Totals',
-  alternate_totals: 'Totals',
-  btts: 'Both Teams to Score',
-  double_chance: 'Double Chance',
-};
-
-function getMarketLabel(marketKey: string): string {
-  return MARKET_LABELS[marketKey] || marketKey;
+// Split file structures
+interface SteamMovesRecent {
+  leagueId: string;
+  season: string;
+  steamMoves: SteamMove[];
+  generatedAt: string;
+  availableMarkets: string[];
+  fromDate: string;
+  toDate: string;
 }
 
-function isAllowedMarket(marketKey: string): boolean {
-  return ALLOWED_MARKETS.includes(marketKey);
+interface SteamMovesByDate {
+  leagueId: string;
+  season: string;
+  date: string;
+  steamMoves: SteamMove[];
+  generatedAt: string;
 }
 
-function calculateMovement(fromOdds: number, toOdds: number): number {
-  return ((toOdds - fromOdds) / fromOdds) * 100;
+interface SteamMovesDatesIndex {
+  leagueId: string;
+  season: string;
+  availableDates: string[];
+  availableMarkets: string[];
+  generatedAt: string;
 }
 
-interface OutcomeData {
-  name: string;
-  price: number;
-  point?: number;
-}
-
-function getOutcomesFromMarket(market: BookmakerMarket): OutcomeData[] {
-  return market.outcomes.map((o) => ({
-    name: o.name,
-    price: o.price,
-    point: o.point,
-  }));
-}
-
-function findMatchingOutcome(
-  outcomes: OutcomeData[],
-  targetName: string,
-  targetPoint?: number
-): OutcomeData | undefined {
-  return outcomes.find((o) => {
-    const nameMatch = o.name === targetName;
-    if (targetPoint !== undefined) {
-      return nameMatch && o.point === targetPoint;
-    }
-    return nameMatch;
-  });
-}
-
+/**
+ * Steam moves API - reads split pre-computed files from R2
+ *
+ * Supports two modes:
+ * 1. ?type=recent - Load last 14 days (uses steam_moves_recent.json)
+ * 2. ?date=YYYY-MM-DD - Load a specific date (uses steam_moves_by_date/{date}.json)
+ *
+ * This avoids loading the large full aggregate file.
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const season = searchParams.get('season') || CURRENT_SEASON;
-
-  // Pagination parameters
-  const beforeDate = searchParams.get('before'); // Load matches before this date
-  const daysToLoad = parseInt(searchParams.get('days') || '14', 10);
+  const type = searchParams.get('type'); // 'recent'
+  const date = searchParams.get('date'); // 'YYYY-MM-DD'
 
   try {
     const { env } = await getCloudflareContext({ async: true });
     const bucket = env.ODDS_BUCKET;
 
-    // Calculate date range
-    const endDate = beforeDate ? new Date(beforeDate) : new Date();
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - daysToLoad);
-
-    const steamMoves: SteamMove[] = [];
+    const allSteamMoves: SteamMove[] = [];
     let hasOlderMatches = false;
     let oldestMatchDate: string | undefined;
 
-    for (const league of LEAGUES) {
-      const indexKey = `odds_data_v2/leagues/${league.id}/${season}/by_match.json`;
-      const indexObject = await bucket.get(indexKey);
+    if (type === 'recent') {
+      // Load recent files (last 14 days)
+      for (const league of LEAGUES) {
+        const recentKey = `odds_data_v2/leagues/${league.id}/${season}/steam_moves_recent.json`;
+        const recentObject = await bucket.get(recentKey);
 
-      if (!indexObject) continue;
+        if (!recentObject) continue;
 
-      const indexData: MatchIndex = await indexObject.json();
+        const recent: SteamMovesRecent = await recentObject.json();
+        allSteamMoves.push(...recent.steamMoves);
 
-      // Filter matches by date range
-      const matchEntries = Object.entries(indexData.matches).filter(([, matchEntry]) => {
-        const kickoff = new Date(matchEntry.kickoffTime);
-        if (kickoff < startDate) {
-          hasOlderMatches = true;
-          return false;
+        // Check if there's older data
+        const datesKey = `odds_data_v2/leagues/${league.id}/${season}/steam_moves_dates.json`;
+        const datesObject = await bucket.get(datesKey);
+        if (datesObject) {
+          const datesIndex: SteamMovesDatesIndex = await datesObject.json();
+          const recentFromDate = recent.fromDate;
+          hasOlderMatches = datesIndex.availableDates.some((d) => d < recentFromDate);
         }
-        return kickoff < endDate;
-      });
-
-      // Process matches in parallel batches
-      const batchSize = 10;
-      for (let i = 0; i < matchEntries.length; i += batchSize) {
-        const batch = matchEntries.slice(i, i + batchSize);
-
-        await Promise.all(batch.map(async ([matchKey, matchEntry]) => {
-          const availableTimings = TIMING_ORDER.filter(
-            (t) => matchEntry.snapshots[t]
-          );
-
-          if (availableTimings.length < 2) return;
-
-          // Track oldest date
-          if (!oldestMatchDate || matchEntry.kickoffTime < oldestMatchDate) {
-            oldestMatchDate = matchEntry.kickoffTime;
-          }
-
-          // Fetch all snapshots for this match
-          const snapshotPromises = availableTimings.map(async (timing) => {
-            const path = matchEntry.snapshots[timing];
-            const obj = await bucket.get(path);
-            if (!obj) return { timing, snapshot: null };
-            const snapshot: OddsSnapshot = await obj.json();
-            return { timing, snapshot };
-          });
-
-          const snapshotResults = await Promise.all(snapshotPromises);
-          const snapshots: Record<string, OddsSnapshot> = {};
-          for (const { timing, snapshot } of snapshotResults) {
-            if (snapshot) snapshots[timing] = snapshot;
-          }
-
-          // Compare consecutive timings
-          for (let j = 0; j < availableTimings.length - 1; j++) {
-            const fromTiming = availableTimings[j];
-            const toTiming = availableTimings[j + 1];
-            const fromSnapshot = snapshots[fromTiming];
-            const toSnapshot = snapshots[toTiming];
-
-            if (!fromSnapshot || !toSnapshot) continue;
-
-            const fromBookmakers = new Map(
-              fromSnapshot.odds.bookmakers.map((b) => [b.key, b])
-            );
-
-            for (const toBookmaker of toSnapshot.odds.bookmakers) {
-              const fromBookmaker = fromBookmakers.get(toBookmaker.key);
-              if (!fromBookmaker) continue;
-
-              for (const toMarket of toBookmaker.markets) {
-                if (!isAllowedMarket(toMarket.key)) continue;
-
-                const fromMarket = fromBookmaker.markets.find(
-                  (m) => m.key === toMarket.key
-                );
-                if (!fromMarket) continue;
-
-                const fromOutcomes = getOutcomesFromMarket(fromMarket);
-                const toOutcomes = getOutcomesFromMarket(toMarket);
-
-                for (const toOutcome of toOutcomes) {
-                  const fromOutcome = findMatchingOutcome(
-                    fromOutcomes,
-                    toOutcome.name,
-                    toOutcome.point
-                  );
-
-                  if (!fromOutcome) continue;
-
-                  const movement = calculateMovement(
-                    fromOutcome.price,
-                    toOutcome.price
-                  );
-
-                  if (Math.abs(movement) >= STEAM_THRESHOLD) {
-                    steamMoves.push({
-                      leagueId: league.id,
-                      matchKey,
-                      homeTeam: matchEntry.homeTeam,
-                      awayTeam: matchEntry.awayTeam,
-                      kickoffTime: matchEntry.kickoffTime,
-                      market: toMarket.key,
-                      marketLabel: getMarketLabel(toMarket.key),
-                      outcome: toOutcome.name,
-                      point: toOutcome.point,
-                      fromTiming,
-                      toTiming,
-                      bookmaker: toBookmaker.title,
-                      fromOdds: fromOutcome.price,
-                      toOdds: toOutcome.price,
-                      movement,
-                      direction: movement < 0 ? 'shortening' : 'drifting',
-                    });
-                  }
-                }
-              }
-            }
-          }
-        }));
       }
+
+      // Track oldest date
+      if (allSteamMoves.length > 0) {
+        oldestMatchDate = allSteamMoves.reduce(
+          (oldest, m) => (m.kickoffTime < oldest ? m.kickoffTime : oldest),
+          allSteamMoves[0].kickoffTime
+        );
+      }
+    } else if (date) {
+      // Load specific date files
+      for (const league of LEAGUES) {
+        const dateKey = `odds_data_v2/leagues/${league.id}/${season}/steam_moves_by_date/${date}.json`;
+        const dateObject = await bucket.get(dateKey);
+
+        if (!dateObject) continue;
+
+        const dateData: SteamMovesByDate = await dateObject.json();
+        allSteamMoves.push(...dateData.steamMoves);
+      }
+
+      oldestMatchDate = date + 'T00:00:00Z';
+
+      // Check if there's older data
+      for (const league of LEAGUES) {
+        const datesKey = `odds_data_v2/leagues/${league.id}/${season}/steam_moves_dates.json`;
+        const datesObject = await bucket.get(datesKey);
+        if (datesObject) {
+          const datesIndex: SteamMovesDatesIndex = await datesObject.json();
+          hasOlderMatches = datesIndex.availableDates.some((d) => d < date);
+          if (hasOlderMatches) break;
+        }
+      }
+    } else {
+      // Default: return empty with info about available data
+      return NextResponse.json({
+        season,
+        steamMoves: [],
+        generatedAt: new Date().toISOString(),
+        hasMorePast: true,
+        message: 'Use ?type=recent or ?date=YYYY-MM-DD to load data',
+      });
     }
 
     // Sort by kickoff time (most recent first for past matches)
-    steamMoves.sort((a, b) =>
+    allSteamMoves.sort((a, b) =>
       new Date(b.kickoffTime).getTime() - new Date(a.kickoffTime).getTime()
     );
 
     const response: SteamMovesResponse = {
       season,
-      steamMoves,
+      steamMoves: allSteamMoves,
       generatedAt: new Date().toISOString(),
       hasMorePast: hasOlderMatches,
       oldestDate: oldestMatchDate,
@@ -225,9 +139,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error detecting steam moves:', error);
+    console.error('Error fetching steam moves:', error);
     return NextResponse.json(
-      { error: 'Failed to detect steam moves' },
+      { error: 'Failed to fetch steam moves' },
       { status: 500 }
     );
   }

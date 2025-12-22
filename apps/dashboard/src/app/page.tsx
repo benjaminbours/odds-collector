@@ -109,7 +109,7 @@ export default async function HomePage() {
           <h2 className="page__section-title page__section-title--muted">
             Upcoming Matches
           </h2>
-          <Link href="/leagues/england-premier-league" className="page__view-all">
+          <Link href="/leagues/england-premier-league" className="page__view-all" prefetch={false}>
             View all →
           </Link>
         </div>
@@ -143,7 +143,7 @@ export default async function HomePage() {
           <h2 className="page__section-title page__section-title--muted">
             Recent Steam Moves
           </h2>
-          <Link href="/steam-moves" className="page__view-all">
+          <Link href="/steam-moves" className="page__view-all" prefetch={false}>
             View all →
           </Link>
         </div>
