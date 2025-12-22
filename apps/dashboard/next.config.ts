@@ -9,6 +9,6 @@ const nextConfig: NextConfig = {
 
 // Initialize OpenNext for local development with Cloudflare bindings
 // Use remote: true to connect to actual Cloudflare R2/D1 resources
-initOpenNextCloudflareForDev();
+initOpenNextCloudflareForDev({ remoteBindings: true });
 
 export default nextConfig;
