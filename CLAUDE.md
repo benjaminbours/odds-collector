@@ -22,6 +22,16 @@ Each example directory has its own package.json:
 - **cloudflare-worker**: `npm run dev`, `npm run deploy`
 - **docker**: `npm run docker:build`, `npm run docker:run`, `npm run compose:up`
 
+### Dashboard (apps/dashboard)
+
+Before first `npm run dev`, authenticate wrangler manually:
+
+```
+cd apps/dashboard && npx wrangler login
+```
+
+Why: `next.config.ts` calls `initOpenNextCloudflareForDev({ remoteBindings: true })`, which triggers a wrangler OAuth flow if no cached token exists. With `next dev --turbopack`, the config is evaluated in two processes and both race to bind wrangler's OAuth callback port (8976), causing `EADDRINUSE: ::1:8976` and crashing the dev server. Logging in once caches the token so the callback server is never started.
+
 ## Architecture
 
 ### Three-Layer Design

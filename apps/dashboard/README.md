@@ -2,16 +2,26 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### First-time setup: authenticate wrangler
+
+Before running `npm run dev` for the first time (or after your wrangler token expires), log in manually:
+
+```bash
+npx wrangler login
+```
+
+Why: `next.config.ts` calls `initOpenNextCloudflareForDev({ remoteBindings: true })` to connect dev to the real Cloudflare R2/D1 resources. Without a cached token, this kicks off a wrangler OAuth flow. With `next dev --turbopack`, the config is evaluated in two processes, and both race to bind wrangler's OAuth callback port (8976), causing:
+
+```
+Error: listen EADDRINUSE: address already in use ::1:8976
+```
+
+Logging in once caches the token, so the OAuth callback server is never started and the race goes away.
+
+### Running the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
