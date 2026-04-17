@@ -7,11 +7,13 @@
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { JobScheduler } from "./JobScheduler";
+import { MatchMetadataRepository } from "./MatchMetadataRepository";
 import { ValueBetOrchestrator } from "./ValueBetOrchestrator";
 import { TimingOffset, OddsSnapshot } from "@odds-collector/shared";
 import { CollectionMetrics, CollectorLeagueConfig } from "../config/types";
 import {
   generateJobId,
+  generateMatchKey,
   calculateScheduledTime,
   inferSeasonFromDate,
 } from "../utils/pathUtils";
@@ -58,6 +60,7 @@ export class OddsCollector {
   private provider: TheOddsApiProvider;
   private storage: R2Storage;
   private scheduler: JobScheduler;
+  private matchRepo: MatchMetadataRepository;
   private timings: TimingOffset[];
   private leagues: Map<string, CollectorLeagueConfig> = new Map();
 
@@ -76,6 +79,7 @@ export class OddsCollector {
     this.storage = config.storage;
     this.timings = config.timings;
     this.scheduler = new JobScheduler({ db: config.db });
+    this.matchRepo = new MatchMetadataRepository(config.db);
 
     this.maxJobsPerRun = config.maxJobsPerRun ?? 100;
     this.maxConcurrentRequests = config.maxConcurrentRequests ?? 1;
@@ -313,6 +317,30 @@ export class OddsCollector {
 
         // Mark as completed
         await this.scheduler.updateJobStatus(job.id, "completed", snapshotPath);
+
+        // Persist canonical match metadata (D1). Team names on the job row are
+        // already normalized (see discoverEvents), so reuse them directly.
+        const matchKey = generateMatchKey(
+          job.homeTeam,
+          job.awayTeam,
+          job.matchDate
+        );
+        await this.matchRepo.upsertMatch({
+          matchKey,
+          leagueId: job.leagueId,
+          season,
+          eventId: job.eventId,
+          homeTeam: job.homeTeam,
+          awayTeam: job.awayTeam,
+          matchDate: job.matchDate,
+          kickoffTime: job.kickoffTime,
+        });
+        await this.matchRepo.upsertSnapshot({
+          matchKey,
+          timing: job.timingOffset,
+          r2Path: snapshotPath,
+          collectedAt: snapshot.metadata.timestamp,
+        });
 
         console.log(`     ✅ Saved to: ${snapshotPath}`);
 

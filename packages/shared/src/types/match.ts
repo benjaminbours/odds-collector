@@ -1,5 +1,48 @@
 /**
- * Match index types for R2 storage lookups
+ * Match metadata types.
+ *
+ * The `MatchRecord` / `SnapshotRecord` pair backs the D1 tables (matches, snapshots)
+ * that replace the older R2 JSON indexes. `MatchIndex` / `DateIndex` below remain
+ * until the Phase 4 retirement removes the last R2-index consumers.
+ */
+
+/**
+ * A single match row from D1 `matches`, optionally joined with its snapshots.
+ */
+export interface MatchRecord {
+  matchKey: string;
+  leagueId: string;
+  season: string;
+  eventId: string;
+  homeTeam: string;
+  awayTeam: string;
+  matchDate: string;
+  kickoffTime: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * A single snapshot row from D1 `snapshots`.
+ */
+export interface SnapshotRecord {
+  matchKey: string;
+  timing: string;
+  r2Path: string;
+  collectedAt: string;
+}
+
+/**
+ * Match with its snapshot map keyed by timing — convenience shape for callers
+ * that used to read `MatchIndexEntry.snapshots`.
+ */
+export interface MatchWithSnapshots extends MatchRecord {
+  snapshots: Record<string, string>;
+}
+
+/**
+ * Legacy: Match index types for R2 storage lookups.
+ * Retained until the dashboard finishes migrating off `by_match.json` / `by_date.json`.
  */
 
 /**
