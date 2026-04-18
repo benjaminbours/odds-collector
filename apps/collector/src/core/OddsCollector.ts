@@ -28,6 +28,9 @@ export interface OddsCollectorConfig {
   /** Timing offsets to use for collection */
   timings: TimingOffset[];
 
+  /** Comma-separated regions passed to the-odds-api event-odds endpoint (e.g. "eu,uk"). Defaults to "eu". */
+  regions?: string;
+
   /** D1 database binding for job scheduling */
   db: D1Database;
 
@@ -62,6 +65,8 @@ export class OddsCollector {
   private scheduler: JobScheduler;
   private matchRepo: MatchMetadataRepository;
   private timings: TimingOffset[];
+  private regions: string;
+  private regionCount: number;
   private leagues: Map<string, CollectorLeagueConfig> = new Map();
 
   private maxJobsPerRun: number;
@@ -78,6 +83,8 @@ export class OddsCollector {
     this.provider = config.provider;
     this.storage = config.storage;
     this.timings = config.timings;
+    this.regions = config.regions ?? "eu";
+    this.regionCount = this.regions.split(",").filter(Boolean).length;
     this.scheduler = new JobScheduler({ db: config.db });
     this.matchRepo = new MatchMetadataRepository(config.db);
 
@@ -287,7 +294,8 @@ export class OddsCollector {
         const oddsData = await this.provider.fetchEventOdds(
           league.providerKey,
           job.eventId,
-          timing.markets
+          timing.markets,
+          this.regions
         );
 
         // Create snapshot
@@ -397,7 +405,7 @@ export class OddsCollector {
         metrics.apiCostTokens += this.provider.estimateCost(
           "live_odds",
           marketCount,
-          1
+          this.regionCount
         );
 
         // Rate limiting

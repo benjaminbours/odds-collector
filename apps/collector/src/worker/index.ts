@@ -38,6 +38,7 @@ export interface Env {
   R2_SECRET_ACCESS_KEY: string;
   LEAGUES: string; // JSON array of league IDs
   TIMING_PRESET: "MINIMAL" | "BASIC" | "STANDARD" | "COMPREHENSIVE";
+  REGIONS?: string; // Comma-separated regions (e.g. "eu,uk"); defaults to "eu"
 
   // Value bet detection (optional - for track record)
   BACKEND_URL?: string;
@@ -103,6 +104,7 @@ export default {
         }),
         timings:
           TimingPresets[env.TIMING_PRESET] || TimingPresets.COMPREHENSIVE,
+        regions: env.REGIONS || "eu",
         db: env.odds_collector_db, // Use D1 database binding
         enableDiscovery: isDiscoveryRun, // Only enable discovery on 6 AM run
         // Value bet detection configuration
