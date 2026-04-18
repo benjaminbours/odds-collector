@@ -2,18 +2,13 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import type { DateIndex, MatchIndex, MatchIndexEntry } from "@odds-collector/shared";
 import { toSlug } from "@/lib/url-utils";
+import { groupMatchesByDate, type MatchWithKey } from "@/lib/matches-db";
 import "@/styles/date-grouped-matches.css";
 
 interface DateGroupedMatchesProps {
-  dateIndex: DateIndex;
-  matchIndex: MatchIndex;
+  matches: MatchWithKey[];
   leagueId: string;
-}
-
-interface MatchWithKey extends MatchIndexEntry {
-  key: string;
 }
 
 const TIMING_LABELS: Record<string, string> = {
@@ -63,16 +58,24 @@ function formatKickoffTime(kickoffTime: string): string {
 }
 
 export function DateGroupedMatches({
-  dateIndex,
-  matchIndex,
+  matches,
   leagueId,
 }: DateGroupedMatchesProps) {
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
 
+  // Derive date groupings + match-by-key lookup from the flat match list.
+  const { dateIndex, matchByKey } = useMemo(() => {
+    const dateIndex = groupMatchesByDate(matches);
+    const matchByKey = new Map<string, MatchWithKey>(
+      matches.map((m) => [m.key, m])
+    );
+    return { dateIndex, matchByKey };
+  }, [matches]);
+
   // Sort dates and separate upcoming vs past
   const { upcomingDates, pastDates } = useMemo(() => {
-    const sortedDates = Object.keys(dateIndex.dates).sort((a, b) =>
+    const sortedDates = Object.keys(dateIndex).sort((a, b) =>
       new Date(b).getTime() - new Date(a).getTime()
     );
 
@@ -92,7 +95,7 @@ export function DateGroupedMatches({
     // Past stays descending (most recent first)
 
     return { upcomingDates: upcoming, pastDates: past };
-  }, [dateIndex.dates, todayStr]);
+  }, [dateIndex, todayStr]);
 
   // Track which dates are expanded
   const [expandedDates, setExpandedDates] = useState<Set<string>>(() => {
@@ -117,35 +120,34 @@ export function DateGroupedMatches({
 
   // Get matches for a date, filtering duplicates
   const getMatchesForDate = (dateStr: string): MatchWithKey[] => {
-    const dateEntry = dateIndex.dates[dateStr];
+    const dateEntry = dateIndex[dateStr];
     if (!dateEntry) return [];
 
-    // Filter to only matches that exist in matchIndex and dedupe by teams
+    // Dedupe by team pair in case multiple match_keys map to the same fixture
     const seen = new Set<string>();
-    const matches: MatchWithKey[] = [];
+    const dateMatches: MatchWithKey[] = [];
 
     for (const matchKey of dateEntry.matches) {
-      const match = matchIndex.matches[matchKey];
+      const match = matchByKey.get(matchKey);
       if (!match) continue;
 
-      // Create a normalized key for deduplication
       const normalizedKey = `${match.homeTeam.toLowerCase()}_${match.awayTeam.toLowerCase()}`;
       if (seen.has(normalizedKey)) continue;
       seen.add(normalizedKey);
 
-      matches.push({ ...match, key: matchKey });
+      dateMatches.push(match);
     }
 
-    // Sort by kickoff time
-    return matches.sort((a, b) =>
-      new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
+    return dateMatches.sort(
+      (a, b) =>
+        new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
     );
   };
 
   const renderDateSection = (dateStr: string) => {
-    const dateEntry = dateIndex.dates[dateStr];
+    const dateEntry = dateIndex[dateStr];
     const isExpanded = expandedDates.has(dateStr);
-    const matches = isExpanded ? getMatchesForDate(dateStr) : [];
+    const dateMatches = isExpanded ? getMatchesForDate(dateStr) : [];
     const isPast = dateStr < todayStr;
 
     return (
@@ -186,7 +188,7 @@ export function DateGroupedMatches({
 
         {isExpanded && (
           <div className="date-group__matches">
-            {matches.map((match) => (
+            {dateMatches.map((match) => (
               <Link
                 key={match.key}
                 href={`/leagues/${toSlug(leagueId)}/matches/${toSlug(match.key)}`}

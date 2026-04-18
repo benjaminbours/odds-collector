@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CURRENT_SEASON } from "@odds-collector/shared";
-import type { MatchIndex } from "@odds-collector/shared";
+import { getLeagueMatches } from "@/lib/matches-db";
 
 interface RouteParams {
   params: Promise<{ leagueId: string }>;
@@ -14,39 +14,25 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const bucket = env.ODDS_BUCKET;
+    const matches = await getLeagueMatches(env.DB, leagueId, season);
 
-    // Fetch the match index from R2
-    const indexKey = `odds_data_v2/leagues/${leagueId}/${season}/by_match.json`;
-    const indexObject = await bucket.get(indexKey);
-
-    if (!indexObject) {
+    if (matches.length === 0) {
       return NextResponse.json(
         { error: "No matches found for this league/season" },
         { status: 404 }
       );
     }
 
-    const indexData: MatchIndex = await indexObject.json();
-
-    // Convert matches object to array with keys and sort by date
-    const matches = Object.entries(indexData.matches)
-      .map(([key, match]) => ({
-        key,
-        ...match,
-      }))
-      .sort((a, b) => {
-        // Sort by kickoff time, most recent first
-        const timeA = new Date(a.kickoffTime).getTime();
-        const timeB = new Date(b.kickoffTime).getTime();
-        return timeB - timeA;
-      });
+    // Sort most-recent first to match the previous API contract.
+    const sorted = [...matches].sort(
+      (a, b) =>
+        new Date(b.kickoffTime).getTime() - new Date(a.kickoffTime).getTime()
+    );
 
     return NextResponse.json({
       leagueId,
       season,
-      lastUpdated: indexData.lastUpdated,
-      matches,
+      matches: sorted,
     });
   } catch (error) {
     console.error("Error fetching matches:", error);

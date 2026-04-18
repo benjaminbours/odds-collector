@@ -20,13 +20,16 @@
       "service": "odds-dashboard",
     },
   ],
-  // Share the same D1 database as the collector (preview_database_id allows using --remote in dev)
+  // Share the same D1 database as the collector. `remote: true` routes dev
+  // reads to the production D1 (same pattern as the R2 binding below) so we
+  // don't need to maintain a parallel local SQLite for the dashboard.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "odds-collector-db",
       "database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651",
       "preview_database_id": "5ad1cd7e-cfc9-4010-b272-c91c82c7f651",
+      "remote": true,
     },
   ],
   // Share the same R2 bucket (preview_bucket_name allows using --remote in dev)

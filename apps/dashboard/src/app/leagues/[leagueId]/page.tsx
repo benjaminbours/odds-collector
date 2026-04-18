@@ -3,32 +3,12 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { getLeagueById, CURRENT_SEASON } from "@odds-collector/shared";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { MatchIndex, DateIndex } from "@odds-collector/shared";
+import { getLeagueMatches } from "@/lib/matches-db";
 import { fromSlug } from "@/lib/url-utils";
 import "@/styles/league-page.css";
 
 interface PageProps {
   params: Promise<{ leagueId: string }>;
-}
-
-async function getMatchesData(leagueId: string, season: string) {
-  const { env } = await getCloudflareContext({ async: true });
-  const bucket = env.ODDS_BUCKET;
-
-  // Fetch both indexes in parallel
-  const [matchIndexObject, dateIndexObject] = await Promise.all([
-    bucket.get(`odds_data_v2/leagues/${leagueId}/${season}/by_match.json`),
-    bucket.get(`odds_data_v2/leagues/${leagueId}/${season}/by_date.json`),
-  ]);
-
-  if (!matchIndexObject || !dateIndexObject) {
-    return null;
-  }
-
-  const matchIndex: MatchIndex = await matchIndexObject.json();
-  const dateIndex: DateIndex = await dateIndexObject.json();
-
-  return { matchIndex, dateIndex };
 }
 
 export default async function LeaguePage({ params }: PageProps) {
@@ -42,9 +22,10 @@ export default async function LeaguePage({ params }: PageProps) {
   }
 
   const season = CURRENT_SEASON;
-  const data = await getMatchesData(leagueId, season);
+  const { env } = await getCloudflareContext({ async: true });
+  const matches = await getLeagueMatches(env.DB, leagueId, season);
 
-  if (!data) {
+  if (matches.length === 0) {
     return (
       <div className="league-page">
         <header className="league-page__header">
@@ -58,9 +39,6 @@ export default async function LeaguePage({ params }: PageProps) {
     );
   }
 
-  const { matchIndex, dateIndex } = data;
-  const totalMatches = Object.keys(matchIndex.matches).length;
-
   return (
     <div className="league-page">
       <Breadcrumb items={[{ label: league.name }]} />
@@ -68,15 +46,11 @@ export default async function LeaguePage({ params }: PageProps) {
       <header className="league-page__header">
         <h1 className="league-page__title">{league.name}</h1>
         <p className="league-page__subtitle">
-          Season {season} &middot; {totalMatches} matches tracked
+          Season {season} &middot; {matches.length} matches tracked
         </p>
       </header>
 
-      <DateGroupedMatches
-        dateIndex={dateIndex}
-        matchIndex={matchIndex}
-        leagueId={leagueId}
-      />
+      <DateGroupedMatches matches={matches} leagueId={leagueId} />
     </div>
   );
 }

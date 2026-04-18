@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CURRENT_SEASON } from "@odds-collector/shared";
-import type { MatchIndex, OddsSnapshot } from "@odds-collector/shared";
+import type { OddsSnapshot } from "@odds-collector/shared";
+import { getMatchByKey } from "@/lib/matches-db";
 
 interface RouteParams {
   params: Promise<{ leagueId: string; matchKey: string }>;
@@ -14,58 +15,39 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const bucket = env.ODDS_BUCKET;
-
-    // Fetch the match index to get snapshot paths
-    const indexKey = `odds_data_v2/leagues/${leagueId}/${season}/by_match.json`;
-    const indexObject = await bucket.get(indexKey);
-
-    if (!indexObject) {
-      return NextResponse.json(
-        { error: "Match index not found" },
-        { status: 404 }
-      );
-    }
-
-    const indexData: MatchIndex = await indexObject.json();
     const decodedMatchKey = decodeURIComponent(matchKey);
-    const matchEntry = indexData.matches[decodedMatchKey];
+    const match = await getMatchByKey(env.DB, leagueId, season, decodedMatchKey);
 
-    if (!matchEntry) {
+    if (!match) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
 
-    // Fetch all snapshots in parallel
-    const snapshotPromises = Object.entries(matchEntry.snapshots).map(
+    // Snapshot payloads still live on R2 — pull each by the path D1 gave us.
+    const bucket = env.ODDS_BUCKET;
+    const snapshotPromises = Object.entries(match.snapshots).map(
       async ([timing, path]) => {
         const snapshotObject = await bucket.get(path);
-        if (!snapshotObject) {
-          return { timing, snapshot: null };
-        }
+        if (!snapshotObject) return { timing, snapshot: null };
         const snapshot: OddsSnapshot = await snapshotObject.json();
         return { timing, snapshot };
       }
     );
-
     const snapshotResults = await Promise.all(snapshotPromises);
 
-    // Build snapshots map
     const snapshots: Record<string, OddsSnapshot> = {};
     for (const { timing, snapshot } of snapshotResults) {
-      if (snapshot) {
-        snapshots[timing] = snapshot;
-      }
+      if (snapshot) snapshots[timing] = snapshot;
     }
 
     return NextResponse.json({
       leagueId,
       season,
-      matchKey: decodedMatchKey,
-      homeTeam: matchEntry.homeTeam,
-      awayTeam: matchEntry.awayTeam,
-      matchDate: matchEntry.matchDate,
-      kickoffTime: matchEntry.kickoffTime,
-      eventId: matchEntry.eventId,
+      matchKey: match.matchKey,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      matchDate: match.matchDate,
+      kickoffTime: match.kickoffTime,
+      eventId: match.eventId,
       snapshots,
     });
   } catch (error) {

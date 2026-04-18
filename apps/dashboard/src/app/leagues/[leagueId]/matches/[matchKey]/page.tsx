@@ -1,13 +1,13 @@
 import {
   getLeagueById,
   CURRENT_SEASON,
-  MatchIndex,
   OddsSnapshot,
 } from "@odds-collector/shared";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { MatchOddsAnalysis } from "@/components/MatchOddsAnalysis";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { getMatchByKey } from "@/lib/matches-db";
 import { fromSlug, toSlug } from "@/lib/url-utils";
 import "@/styles/match-page.css";
 
@@ -21,55 +21,33 @@ async function getMatchDetails(
   matchKey: string
 ) {
   const { env } = await getCloudflareContext({ async: true });
+  const match = await getMatchByKey(env.DB, leagueId, season, matchKey);
+  if (!match) return null;
+
+  // Snapshot payloads still live on R2 — fetch them in parallel by the paths D1 gave us.
   const bucket = env.ODDS_BUCKET;
-
-  // Fetch the match index to get snapshot paths
-  const indexKey = `odds_data_v2/leagues/${leagueId}/${season}/by_match.json`;
-  const indexObject = await bucket.get(indexKey);
-
-  if (!indexObject) {
-    return null;
-  }
-
-  const indexData: MatchIndex = await indexObject.json();
-  const decodedMatchKey = decodeURIComponent(matchKey);
-  const matchEntry = indexData.matches[decodedMatchKey];
-
-  console.log("match entry", matchEntry);
-
-  if (!matchEntry) {
-    return null;
-  }
-
-  // Fetch all snapshots in parallel
-  const snapshotPromises = Object.entries(matchEntry.snapshots).map(
+  const snapshotPromises = Object.entries(match.snapshots).map(
     async ([timing, path]) => {
       const snapshotObject = await bucket.get(path);
-      if (!snapshotObject) {
-        return { timing, snapshot: null };
-      }
+      if (!snapshotObject) return { timing, snapshot: null };
       const snapshot: OddsSnapshot = await snapshotObject.json();
       return { timing, snapshot };
     }
   );
-
   const snapshotResults = await Promise.all(snapshotPromises);
 
-  // Build snapshots map
   const snapshots: Record<string, OddsSnapshot> = {};
   for (const { timing, snapshot } of snapshotResults) {
-    if (snapshot) {
-      snapshots[timing] = snapshot;
-    }
+    if (snapshot) snapshots[timing] = snapshot;
   }
 
   return {
-    matchKey: decodedMatchKey,
-    homeTeam: matchEntry.homeTeam,
-    awayTeam: matchEntry.awayTeam,
-    matchDate: matchEntry.matchDate,
-    kickoffTime: matchEntry.kickoffTime,
-    eventId: matchEntry.eventId,
+    matchKey: match.matchKey,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    matchDate: match.matchDate,
+    kickoffTime: match.kickoffTime,
+    eventId: match.eventId,
     snapshots,
   };
 }

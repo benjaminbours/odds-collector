@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { MatchIndexEntry } from '@odds-collector/shared';
+import type { MatchWithKey } from '@/lib/matches-db';
 import { toSlug } from '@/lib/url-utils';
 import '@/styles/match-card.css';
 
 interface MatchCardProps {
-  match: MatchIndexEntry & { key: string };
+  match: MatchWithKey;
   leagueId: string;
   leagueName?: string;
 }
