@@ -10,7 +10,6 @@ import * as path from "path";
 import { R2Storage } from "../storage/R2Storage";
 import { TimingPresets } from "../config/timingPresets";
 import { getLeagueConfig, CURRENT_SEASON } from "../config/leagues";
-import { IndexBuilder } from "../core/IndexBuilder";
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { normalizeTeamName } from "@odds-collector/team-normalization";
 import type { OddsSnapshot, EventOdds } from "@odds-collector/shared";
@@ -240,91 +239,11 @@ async function main() {
   console.log(`Failed: ${failed}`);
   console.log("=".repeat(60));
 
-  // Rebuild indexes if we uploaded anything
   if (uploaded > 0 && !dryRun) {
-    console.log("\n📚 Rebuilding indexes...");
-
-    const indexBuilder = new IndexBuilder({
-      storage,
-      leagueId: "england_premier_league",
-    });
-
-    for (const season of seasons) {
-      try {
-        console.log(`\n  Building indexes for ${season}...`);
-
-        // Get all snapshots for this season
-        const snapshotIds = await storage.listSnapshots(
-          "england_premier_league",
-          season,
-        );
-
-        if (snapshotIds.length === 0) {
-          console.log(`    ⏭️  No snapshots, skipping`);
-          continue;
-        }
-
-        console.log(`    📇 Processing ${snapshotIds.length} snapshots...`);
-
-        // Build snapshot metadata for index
-        const snapshotMetadata = [];
-        for (const snapshotId of snapshotIds) {
-          try {
-            const snapshot = await storage.getSnapshot(
-              "england_premier_league",
-              season,
-              snapshotId,
-            );
-            if (!snapshot) continue;
-
-            // Extract markets from bookmakers
-            const marketsSet = new Set<string>();
-            snapshot.odds.bookmakers?.forEach((bookmaker: any) => {
-              bookmaker.markets?.forEach((market: any) => {
-                marketsSet.add(market.key);
-              });
-            });
-
-            snapshotMetadata.push({
-              homeTeam: snapshot.odds.homeTeam,
-              awayTeam: snapshot.odds.awayTeam,
-              matchDate: snapshot.metadata.date,
-              eventId:
-                snapshot.metadata.eventMetadata?.eventId || snapshot.odds.id,
-              timing: snapshot.metadata.snapshotTiming,
-              path: `england_premier_league/${season}/${snapshotId}.json`,
-              markets: Array.from(marketsSet),
-              kickoffTime: snapshot.odds.commenceTime,
-            });
-          } catch (error: any) {
-            console.warn(
-              `    ⚠️  Could not load snapshot ${snapshotId}: ${error.message}`,
-            );
-            continue;
-          }
-        }
-
-        if (snapshotMetadata.length > 0) {
-          // Update match index
-          await indexBuilder.updateMatchIndex(
-            "england_premier_league",
-            season,
-            snapshotMetadata,
-          );
-
-          // Build derived indexes (by_date, by_team)
-          await indexBuilder.buildAllIndexes("england_premier_league", season);
-
-          console.log(`    ✅ Indexes built for ${season}`);
-        }
-      } catch (error: any) {
-        console.error(
-          `    ❌ Failed to build indexes for ${season}: ${error.message}`,
-        );
-      }
-    }
-
-    console.log("\n✅ Index building completed");
+    console.log(
+      "\nℹ️  R2 snapshots uploaded. Run `npm run populate-match-metadata -- --remote` " +
+        "to sync them into the D1 matches/snapshots tables (the dashboard reads D1 only)."
+    );
   }
 }
 

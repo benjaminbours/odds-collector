@@ -21,7 +21,7 @@ export { R2Storage, R2StorageConfig } from './storage/R2Storage';
 // Core
 export { JobScheduler, JobSchedulerConfig } from './core/JobScheduler';
 export { OddsCollector, OddsCollectorConfig } from './core/OddsCollector';
-export { IndexBuilder, IndexBuilderConfig } from './core/IndexBuilder';
+export { MatchMetadataRepository } from './core/MatchMetadataRepository';
 
 // Utils
 export * from './utils/pathUtils';

@@ -53,7 +53,7 @@ const FORCE = args.includes("--force");
 const LEAGUE_ARG = args.find((a) => a.startsWith("--league="));
 const SPECIFIC_LEAGUE = LEAGUE_ARG?.split("=")[1];
 
-// Steam move detection configuration (same as AggregateBuilder)
+// Steam move detection configuration
 const STEAM_THRESHOLD = 5;
 const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
 
@@ -77,7 +77,8 @@ const MARKET_LABELS: Record<string, string> = {
   double_chance: "Double Chance",
 };
 
-// Interfaces (same as AggregateBuilder)
+// Steam move + aggregate interfaces (kept local to this script after the
+// collector-side AggregateBuilder was retired in the R2→D1 migration).
 interface SteamMove {
   leagueId: string;
   matchKey: string;

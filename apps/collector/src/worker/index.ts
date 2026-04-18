@@ -18,8 +18,6 @@ import { OddsCollector } from "../core/OddsCollector";
 import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { TimingPresets } from "../config/timingPresets";
-import { IndexBuilder } from "../core/IndexBuilder";
-import { AggregateBuilder } from "../core/AggregateBuilder";
 import { normalizeTeamName } from "@odds-collector/team-normalization";
 import { getLeagueConfig } from "../config/leagues";
 import { ValueBetService } from "../core/ValueBetService";
@@ -132,80 +130,11 @@ export default {
         });
       }
 
-      // Run collection (discovery + execution)
+      // Run collection (discovery + execution). Match metadata is persisted
+      // to D1 by OddsCollector itself on job completion; the old post-run
+      // R2 index-rebuild and homepage-aggregate passes are gone — the
+      // dashboard reads D1 directly.
       await collector.run();
-
-      // Build indexes for all leagues
-      const scheduler = collector["scheduler"];
-
-      for (const leagueId of leagueIds) {
-        // Create IndexBuilder with leagueId for proper team name normalization
-        const indexBuilder = new IndexBuilder({
-          storage: collector["storage"],
-          leagueId,
-        });
-        const season = inferCurrentSeason();
-        try {
-          // Step 1: Get completed jobs for this league
-          const completedJobs = await scheduler.getCompletedJobs(leagueId);
-
-          if (completedJobs.length > 0) {
-            console.log(
-              `📇 Building match index from ${completedJobs.length} completed jobs for ${leagueId}/${season}...`
-            );
-
-            // Step 2: Transform jobs into snapshot metadata for index building
-            const snapshotsMetadata = completedJobs.map((job) => {
-              return {
-                homeTeam: job.homeTeam,
-                awayTeam: job.awayTeam,
-                matchDate: job.matchDate,
-                eventId: job.eventId,
-                timing: job.timingOffset,
-                path: job.snapshotPath!,
-                kickoffTime: job.kickoffTime,
-              };
-            });
-
-            // Step 3: Update match index with all completed snapshots
-            await indexBuilder.updateMatchIndex(
-              leagueId,
-              season,
-              snapshotsMetadata
-            );
-          }
-
-          // Step 4: Build derived indexes (date, team)
-          await indexBuilder.buildAllIndexes(leagueId, season);
-          console.log(`✅ Indexes built for ${leagueId}/${season}`);
-        } catch (error) {
-          console.error(`Failed to build indexes for ${leagueId}:`, error);
-          // Continue with other leagues even if one fails
-        }
-      }
-
-      // Phase 4: Build homepage aggregate for dashboard
-      // Note: Steam moves are built separately via local script (generate-steam-moves-cache.ts)
-      // to avoid hitting Cloudflare's 50 subrequest limit
-      console.log("\n📊 Phase 4: Building Homepage Aggregate");
-      const aggregateBuilder = new AggregateBuilder({
-        storage: new R2Storage({
-          accountId: env.R2_ACCOUNT_ID,
-          accessKeyId: env.R2_ACCESS_KEY_ID,
-          secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-          bucketName: "soccer-predictor",
-          basePath: "odds_data_v2",
-        }),
-      });
-
-      const season = inferCurrentSeason();
-
-      // Build homepage aggregate (reads pre-computed steam_moves.json files)
-      try {
-        await aggregateBuilder.buildHomepageData(season);
-      } catch (error) {
-        console.error("Failed to build homepage data:", error);
-      }
 
       console.log("Odds collection completed successfully");
     } catch (error) {

@@ -26,7 +26,6 @@
 import "dotenv/config";
 import { R2Storage } from "../src/storage/R2Storage";
 import { TheOddsApiProvider } from "../src/providers/TheOddsApiProvider";
-import { IndexBuilder } from "../src/core/IndexBuilder";
 import { OddsSnapshot, ScheduledJob } from "../src/config/types";
 import { normalizeTeamName } from "@odds-collector/team-normalization";
 import { getLeagueConfig } from "../src/config/leagues";
@@ -541,68 +540,21 @@ async function repairAndRebuild(
     }
   }
 
-  // Step 3: Rebuild indexes
-  console.log("\n🔨 Rebuilding indexes...\n");
-
-  // IMPORTANT: Re-query D1 to get fresh data with updated paths
-  console.log("🔄 Re-querying D1 to get updated job data...\n");
-  const freshD1Jobs = await getAllD1Jobs();
-
-  const leagueIds = JSON.parse(CONFIG.LEAGUES) as string[];
-  const indexBuilder = new IndexBuilder({ storage });
-
-  for (const leagueId of leagueIds) {
-    // Get all completed jobs for this league (using fresh data)
-    const completedJobs = freshD1Jobs.filter(
-      j => j.leagueId === leagueId && j.status === "completed" && j.snapshotPath
+  // Step 3: Sync D1 match metadata
+  //
+  // Canonical metadata lives in the `matches` and `snapshots` D1 tables now.
+  // Path fixes from Step 1 landed in `scheduled_jobs`; the populate script
+  // copies completed-job rows into `matches` / `snapshots` with ON CONFLICT
+  // upserts, so rerunning it after repair brings the tables back in sync.
+  if (!DRY_RUN) {
+    console.log(
+      "\nℹ️  D1 paths updated. Run `npm run populate-match-metadata -- --remote` " +
+        "to resync the matches/snapshots tables."
     );
-
-    if (completedJobs.length === 0) {
-      console.log(`⚠️  ${leagueId}: No completed jobs, skipping`);
-      continue;
-    }
-
-    // Group jobs by season
-    const jobsBySeason = new Map<string, typeof completedJobs>();
-    for (const job of completedJobs) {
-      const season = inferSeason(job.matchDate);
-      if (!jobsBySeason.has(season)) {
-        jobsBySeason.set(season, []);
-      }
-      jobsBySeason.get(season)!.push(job);
-    }
-
-    for (const [season, jobs] of jobsBySeason.entries()) {
-      console.log(`📇 Building index for ${leagueId}/${season} (${jobs.length} snapshots)...`);
-
-      if (DRY_RUN) {
-        console.log(`   ⚠️  DRY RUN: Would rebuild index`);
-        continue;
-      }
-
-      try {
-        // Transform jobs into snapshot metadata (lowercase team names for consistent keys)
-        const snapshotsMetadata = jobs.map((job) => ({
-          homeTeam: job.homeTeam.toLowerCase(),
-          awayTeam: job.awayTeam.toLowerCase(),
-          matchDate: job.matchDate,
-          eventId: job.eventId,
-          timing: job.timingOffset,
-          path: job.snapshotPath!,
-          kickoffTime: job.kickoffTime,
-        }));
-
-        // Update match index
-        await indexBuilder.updateMatchIndex(leagueId, season, snapshotsMetadata);
-
-        // Build derived indexes
-        await indexBuilder.buildAllIndexes(leagueId, season);
-
-        console.log(`   ✅ Index rebuilt successfully`);
-      } catch (error) {
-        console.error(`   ❌ Error: ${(error as Error).message}`);
-      }
-    }
+  } else {
+    console.log(
+      "\n⚠️  DRY RUN: would instruct running populate-match-metadata to resync D1 metadata"
+    );
   }
 }
 
