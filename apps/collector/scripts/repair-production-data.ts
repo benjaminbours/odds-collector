@@ -28,7 +28,7 @@ import { R2Storage } from "../src/storage/R2Storage";
 import { TheOddsApiProvider } from "../src/providers/TheOddsApiProvider";
 import { IndexBuilder } from "../src/core/IndexBuilder";
 import { OddsSnapshot, ScheduledJob } from "../src/config/types";
-import { normalizeTeamName } from "@footdata/shared";
+import { normalizeTeamName } from "@odds-collector/team-normalization";
 import { getLeagueConfig } from "../src/config/leagues";
 
 // Configuration from environment variables

@@ -20,7 +20,7 @@ import { R2Storage } from "../storage/R2Storage";
 import { TimingPresets } from "../config/timingPresets";
 import { IndexBuilder } from "../core/IndexBuilder";
 import { AggregateBuilder } from "../core/AggregateBuilder";
-import { normalizeTeamName } from "@footdata/shared";
+import { normalizeTeamName } from "@odds-collector/team-normalization";
 import { getLeagueConfig } from "../config/leagues";
 import { ValueBetService } from "../core/ValueBetService";
 import type { ValueBetStatus, ValueBetOutcome } from "@odds-collector/shared";

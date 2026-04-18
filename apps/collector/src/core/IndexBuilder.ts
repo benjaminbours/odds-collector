@@ -7,7 +7,7 @@
 import { IStorage } from "../storage/IStorage";
 import { MatchIndex, MatchIndexEntry } from "@odds-collector/shared";
 import { generateMatchKey, formatTeamNameForPath } from "../utils/pathUtils";
-import { normalizeTeamName } from "@footdata/shared";
+import { normalizeTeamName } from "@odds-collector/team-normalization";
 
 export interface IndexBuilderConfig {
   /** Storage backend */

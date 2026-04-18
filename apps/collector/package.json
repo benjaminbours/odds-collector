@@ -14,7 +14,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "backfill": "ts-node src/scripts/backfill.ts",
     "rebuild-indexes": "ts-node src/scripts/rebuildIndexes.ts",
-    "populate-match-metadata": "tsx src/scripts/populateMatchMetadata.ts"
+    "populate-match-metadata": "ts-node src/scripts/populateMatchMetadata.ts"
   },
   "keywords": [
     "sports",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
-    "@footdata/shared": "file:../../../footdata/typescript/shared",
-    "@odds-collector/shared": "*"
+    "@odds-collector/shared": "*",
+    "@odds-collector/team-normalization": "*"
   }
 }
