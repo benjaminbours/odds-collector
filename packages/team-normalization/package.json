@@ -1,0 +1,17 @@
+{
+  "name": "@odds-collector/team-normalization",
+  "version": "0.1.0",
+  "description": "Team name normalization for football data sources",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
