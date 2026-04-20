@@ -43,12 +43,49 @@ export const DAY_BEFORE: TimingOffset = {
 };
 
 /**
- * Closing line - 90 minutes before kickoff
- * Sharpest odds, critical for CLV analysis
+ * T-4h before kickoff
+ * Closing window opens — team news starts landing
+ */
+export const T_MINUS_4H: TimingOffset = {
+  name: "t_minus_4h",
+  hoursBeforeKickoff: 4,
+  markets: "h2h,alternate_totals,alternate_spreads,btts,double_chance",
+  priority: "important",
+  directory: "snapshots/t_minus_4h",
+};
+
+/**
+ * T-90m before kickoff
+ * Traditional pre-closing snapshot. Previously named "closing" in this
+ * codebase — renamed so CLOSING semantically means the final snapshot.
+ */
+export const T_MINUS_90M: TimingOffset = {
+  name: "t_minus_90m",
+  hoursBeforeKickoff: 1.5,
+  markets: "h2h,alternate_totals,alternate_spreads,btts,double_chance",
+  priority: "critical",
+  directory: "snapshots/t_minus_90m",
+};
+
+/**
+ * T-30m before kickoff
+ * Late steam-move window
+ */
+export const T_MINUS_30M: TimingOffset = {
+  name: "t_minus_30m",
+  hoursBeforeKickoff: 0.5,
+  markets: "h2h,alternate_totals,alternate_spreads,btts,double_chance",
+  priority: "critical",
+  directory: "snapshots/t_minus_30m",
+};
+
+/**
+ * Closing line - 10 minutes before kickoff
+ * Final snapshot; CLV analysis anchors here.
  */
 export const CLOSING: TimingOffset = {
   name: "closing",
-  hoursBeforeKickoff: 1.5, // 90 minutes
+  hoursBeforeKickoff: 1 / 6, // 10 minutes
   markets: "h2h,alternate_totals,alternate_spreads,btts,double_chance",
   priority: "critical",
   directory: "snapshots/closing",
@@ -67,6 +104,14 @@ export const TimingPresets = {
   /** Opening, Mid-week, Closing (good balance) */
   STANDARD: [OPENING, MID_WEEK, CLOSING],
 
-  /** All timing points (maximum data) */
-  COMPREHENSIVE: [OPENING, MID_WEEK, DAY_BEFORE, CLOSING],
+  /** Full 7-stage curve with dense closing window (intelligence hub default) */
+  COMPREHENSIVE: [
+    OPENING,
+    MID_WEEK,
+    DAY_BEFORE,
+    T_MINUS_4H,
+    T_MINUS_90M,
+    T_MINUS_30M,
+    CLOSING,
+  ],
 };

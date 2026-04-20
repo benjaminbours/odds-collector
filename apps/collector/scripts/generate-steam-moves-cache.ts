@@ -55,7 +55,15 @@ const SPECIFIC_LEAGUE = LEAGUE_ARG?.split("=")[1];
 
 // Steam move detection configuration
 const STEAM_THRESHOLD = 5;
-const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
+const TIMING_ORDER = [
+  "opening",
+  "mid_week",
+  "day_before",
+  "t_minus_4h",
+  "t_minus_90m",
+  "t_minus_30m",
+  "closing",
+];
 
 const ALLOWED_MARKETS = [
   "h2h",

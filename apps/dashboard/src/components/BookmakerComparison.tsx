@@ -6,7 +6,15 @@ import "@/styles/bookmaker-comparison.css";
 import type { MarketKey } from "./MatchOddsAnalysis";
 import { getMarketOutcomes } from "./MatchOddsAnalysis";
 
-const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
+const TIMING_ORDER = [
+  "opening",
+  "mid_week",
+  "day_before",
+  "t_minus_4h",
+  "t_minus_90m",
+  "t_minus_30m",
+  "closing",
+];
 
 function formatSnapshotDateTime(timestamp: string): string {
   const date = new Date(timestamp);
@@ -25,6 +33,9 @@ const TIMING_LABELS: Record<string, string> = {
   opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
+  t_minus_4h: "T-4h",
+  t_minus_90m: "T-90m",
+  t_minus_30m: "T-30m",
   closing: "Closing",
 };
 

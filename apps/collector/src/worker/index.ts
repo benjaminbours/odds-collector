@@ -82,8 +82,11 @@ export default {
       event.cron
     );
 
-    // Determine if this is a discovery run (6 AM) or execution run (every 15 min)
-    const isDiscoveryRun = event.cron === "0 6 * * *";
+    // Determine if this is a discovery run. The 06:00 cron is the
+    // canonical discovery trigger; manual invocations can opt in by
+    // setting cron to "manual:discovery" (see /trigger?discovery=true).
+    const isDiscoveryRun =
+      event.cron === "0 6 * * *" || event.cron === "manual:discovery";
 
     try {
       // Parse league configuration from environment variable
@@ -216,10 +219,15 @@ export default {
         return new Response("Unauthorized", { status: 401 });
       }
 
-      // Trigger collection in background
+      // Opt-in discovery: POST /trigger?discovery=true forces a discovery
+      // pass in addition to execution. Defaults to execution-only so ad-hoc
+      // triggers don't accidentally burn the events endpoint.
+      const forceDiscovery = url.searchParams.get("discovery") === "true";
+      const cronTag = forceDiscovery ? "manual:discovery" : "manual";
+
       ctx.waitUntil(
         this.scheduled(
-          { scheduledTime: Date.now(), cron: "manual" } as ScheduledEvent,
+          { scheduledTime: Date.now(), cron: cronTag } as ScheduledEvent,
           env,
           ctx
         )

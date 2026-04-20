@@ -254,9 +254,11 @@ export class OddsCollector {
    * Phase 2: Execute scheduled jobs that are due
    */
   private async executeJobs(): Promise<void> {
-    // Get jobs due in the next 5 minutes (allows for clock drift)
+    // Narrow 2-min lookahead is required for T-10m (CLOSING) to fire near
+    // its scheduled time on a 5-minute cron cadence instead of up to 5 min
+    // early. Past-due jobs are still picked up — the query has no lower bound.
     const dueJobs = await this.scheduler.getJobsDueWithin(
-      5,
+      2,
       this.maxJobsPerRun
     );
 

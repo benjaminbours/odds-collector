@@ -11,10 +11,23 @@ interface DateGroupedMatchesProps {
   leagueId: string;
 }
 
+const TIMING_ORDER = [
+  "opening",
+  "mid_week",
+  "day_before",
+  "t_minus_4h",
+  "t_minus_90m",
+  "t_minus_30m",
+  "closing",
+];
+
 const TIMING_LABELS: Record<string, string> = {
   opening: "W",
   mid_week: "M",
   day_before: "D",
+  t_minus_4h: "4h",
+  t_minus_90m: "90",
+  t_minus_30m: "30",
   closing: "C",
 };
 
@@ -22,6 +35,9 @@ const TIMING_FULL_LABELS: Record<string, string> = {
   opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
+  t_minus_4h: "T-4h",
+  t_minus_90m: "T-90m",
+  t_minus_30m: "T-30m",
   closing: "Closing",
 };
 
@@ -170,7 +186,7 @@ export function DateGroupedMatches({
             </span>
           </div>
           <div className="date-group__timings">
-            {["opening", "mid_week", "day_before", "closing"].map((timing) => (
+            {TIMING_ORDER.map((timing) => (
               <span
                 key={timing}
                 className={`date-group__timing ${

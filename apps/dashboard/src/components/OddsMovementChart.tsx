@@ -13,11 +13,22 @@ import {
 import type { OddsSnapshot, BookmakerOdds } from "@odds-collector/shared";
 import "@/styles/odds-movement-chart.css";
 
-const TIMING_ORDER = ["opening", "mid_week", "day_before", "closing"];
+const TIMING_ORDER = [
+  "opening",
+  "mid_week",
+  "day_before",
+  "t_minus_4h",
+  "t_minus_90m",
+  "t_minus_30m",
+  "closing",
+];
 const TIMING_LABELS: Record<string, string> = {
   opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
+  t_minus_4h: "T-4h",
+  t_minus_90m: "T-90m",
+  t_minus_30m: "T-30m",
   closing: "Closing",
 };
 

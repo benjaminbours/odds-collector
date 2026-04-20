@@ -9,11 +9,22 @@ interface MatchCardProps {
   leagueName?: string;
 }
 
-const TIMING_ORDER = ['opening', 'mid_week', 'day_before', 'closing'];
+const TIMING_ORDER = [
+  'opening',
+  'mid_week',
+  'day_before',
+  't_minus_4h',
+  't_minus_90m',
+  't_minus_30m',
+  'closing',
+];
 const TIMING_LABELS: Record<string, string> = {
   opening: 'O',
   mid_week: 'M',
   day_before: 'D',
+  t_minus_4h: '4h',
+  t_minus_90m: '90',
+  t_minus_30m: '30',
   closing: 'C',
 };
 

@@ -32,6 +32,9 @@ const TIMING_LABELS: Record<string, string> = {
   opening: "Opening",
   mid_week: "Mid-Week",
   day_before: "Day Before",
+  t_minus_4h: "T-4h",
+  t_minus_90m: "T-90m",
+  t_minus_30m: "T-30m",
   closing: "Closing",
 };
 
