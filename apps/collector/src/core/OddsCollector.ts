@@ -146,6 +146,12 @@ export class OddsCollector {
 
     // Phase 2: Job Execution
     console.log("\n⚙️  Phase 2: Job Execution");
+    // Self-heal rows stuck in 'running' from isolates killed before the
+    // terminal UPDATE ran. 15 min = 3× the 5-min cron cadence.
+    const healed = await this.scheduler.healStuckJobs(15);
+    if (healed > 0) {
+      console.log(`  🩹 Healed ${healed} stuck running job(s)`);
+    }
     await this.executeJobs();
 
     // Phase 3: Summary

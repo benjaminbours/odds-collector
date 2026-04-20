@@ -264,6 +264,31 @@ export class JobScheduler {
   }
 
   /**
+   * Heal jobs stuck in 'running' past the threshold. The worker flips a job
+   * to running before fetch/save; if the isolate is killed (CPU limit on
+   * the free tier) the terminal UPDATE never runs and the row lingers.
+   * Threshold should be ≥3× the cron interval so in-flight jobs are never
+   * clobbered.
+   */
+  async healStuckJobs(thresholdMinutes: number = 15): Promise<number> {
+    const result = await this.db
+      .prepare(
+        `
+      UPDATE scheduled_jobs
+         SET status       = 'failed',
+             error        = COALESCE(error, 'timeout: status not updated within ' || ? || ' minutes'),
+             completed_at = CURRENT_TIMESTAMP
+       WHERE status       = 'running'
+         AND last_attempt < datetime('now', '-' || ? || ' minutes')
+    `
+      )
+      .bind(thresholdMinutes, thresholdMinutes)
+      .run();
+
+    return result.meta.changes;
+  }
+
+  /**
    * Clean up old completed jobs
    */
   async cleanupOldJobs(daysOld: number = 90): Promise<number> {
