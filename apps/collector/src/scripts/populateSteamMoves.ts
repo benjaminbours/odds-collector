@@ -41,14 +41,16 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import {
-  BookmakerMarket,
   CURRENT_SEASON,
   LEAGUES,
   OddsSnapshot,
-  SteamMove,
 } from "@odds-collector/shared";
 import { R2Storage } from "../storage/R2Storage";
-import { toPointKey } from "../core/SteamMovesRepository";
+import { toPointKey, UpsertSteamMoveInput } from "../core/SteamMovesRepository";
+import {
+  TIMING_ORDER,
+  detectMoves as detectMovePair,
+} from "../core/steamMoveDetector";
 
 const D1_DATABASE_NAME = process.env.D1_DATABASE_NAME || "odds-collector-db";
 
@@ -63,35 +65,7 @@ const TARGET_FLAG = REMOTE ? "--remote" : "--local";
 // D1 + wrangler has a per-execute statement limit; keep chunks conservative.
 const CHUNK_SIZE = 200;
 
-// Detection config — ported verbatim from generate-steam-moves-cache.ts.
-const STEAM_THRESHOLD = 5;
-const TIMING_ORDER = [
-  "opening",
-  "mid_week",
-  "day_before",
-  "t_minus_4h",
-  "t_minus_90m",
-  "t_minus_30m",
-  "closing",
-];
-const ALLOWED_MARKETS = [
-  "h2h",
-  "spreads",
-  "alternate_spreads",
-  "totals",
-  "alternate_totals",
-  "btts",
-  "double_chance",
-];
-const MARKET_LABELS: Record<string, string> = {
-  h2h: "Money Line",
-  spreads: "Spread",
-  alternate_spreads: "Spread",
-  totals: "Totals",
-  alternate_totals: "Totals",
-  btts: "Both Teams to Score",
-  double_chance: "Double Chance",
-};
+// Detection constants imported from shared steamMoveDetector (STEAM_THRESHOLD, TIMING_ORDER, MARKET_LABELS)
 
 interface MatchRow {
   match_key: string;
@@ -163,8 +137,8 @@ async function fetchSnapshot(
 function detectMoves(
   match: MatchRow,
   snapshots: Record<string, OddsSnapshot>
-): SteamMove[] {
-  const moves: SteamMove[] = [];
+): UpsertSteamMoveInput[] {
+  const moves: UpsertSteamMoveInput[] = [];
   const availableTimings = TIMING_ORDER.filter((t) => snapshots[t]);
   if (availableTimings.length < 2) return moves;
 
@@ -175,61 +149,22 @@ function detectMoves(
     const toSnapshot = snapshots[toTiming];
     if (!fromSnapshot || !toSnapshot) continue;
 
-    const fromBookmakers = new Map(
-      fromSnapshot.odds.bookmakers.map((b) => [b.key, b])
+    moves.push(
+      ...detectMovePair(
+        fromTiming,
+        fromSnapshot,
+        toTiming,
+        toSnapshot,
+        match.match_key,
+        match.league_id,
+        match.kickoff_time,
+      ),
     );
-
-    for (const toBookmaker of toSnapshot.odds.bookmakers) {
-      const fromBookmaker = fromBookmakers.get(toBookmaker.key);
-      if (!fromBookmaker) continue;
-
-      for (const toMarket of toBookmaker.markets) {
-        if (!ALLOWED_MARKETS.includes(toMarket.key)) continue;
-
-        const fromMarket = fromBookmaker.markets.find(
-          (m: BookmakerMarket) => m.key === toMarket.key
-        );
-        if (!fromMarket) continue;
-
-        for (const toOutcome of toMarket.outcomes) {
-          const fromOutcome = fromMarket.outcomes.find(
-            (o: { name: string; point?: number }) =>
-              o.name === toOutcome.name &&
-              (toOutcome.point === undefined || o.point === toOutcome.point)
-          );
-          if (!fromOutcome) continue;
-
-          const movement =
-            ((toOutcome.price - fromOutcome.price) / fromOutcome.price) * 100;
-
-          if (Math.abs(movement) >= STEAM_THRESHOLD) {
-            moves.push({
-              leagueId: match.league_id,
-              matchKey: match.match_key,
-              homeTeam: match.home_team,
-              awayTeam: match.away_team,
-              kickoffTime: match.kickoff_time,
-              market: toMarket.key,
-              marketLabel: MARKET_LABELS[toMarket.key] || toMarket.key,
-              outcome: toOutcome.name,
-              point: toOutcome.point,
-              fromTiming,
-              toTiming,
-              bookmaker: toBookmaker.title,
-              fromOdds: fromOutcome.price,
-              toOdds: toOutcome.price,
-              movement,
-              direction: movement < 0 ? "shortening" : "drifting",
-            });
-          }
-        }
-      }
-    }
   }
   return moves;
 }
 
-function buildMoveUpsert(move: SteamMove): string {
+function buildMoveUpsert(move: UpsertSteamMoveInput): string {
   const pointKey = toPointKey(move.point);
   return `INSERT INTO steam_moves (match_key, market, outcome, point_key, bookmaker, from_timing, to_timing, league_id, kickoff_time, market_label, point, from_odds, to_odds, movement, direction, detected_at) VALUES ('${sqlEscape(move.matchKey)}', '${sqlEscape(move.market)}', '${sqlEscape(move.outcome)}', '${sqlEscape(pointKey)}', '${sqlEscape(move.bookmaker)}', '${sqlEscape(move.fromTiming)}', '${sqlEscape(move.toTiming)}', '${sqlEscape(move.leagueId)}', '${sqlEscape(move.kickoffTime)}', '${sqlEscape(move.marketLabel)}', ${nullOrReal(move.point)}, ${move.fromOdds}, ${move.toOdds}, ${move.movement}, '${move.direction}', CURRENT_TIMESTAMP) ON CONFLICT(match_key, market, outcome, point_key, bookmaker, from_timing, to_timing) DO UPDATE SET league_id=excluded.league_id, kickoff_time=excluded.kickoff_time, market_label=excluded.market_label, point=excluded.point, from_odds=excluded.from_odds, to_odds=excluded.to_odds, movement=excluded.movement, direction=excluded.direction, detected_at=CURRENT_TIMESTAMP;`;
 }
