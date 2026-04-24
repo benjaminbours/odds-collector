@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { SteamMovesClient } from "@/components/SteamMovesClient";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -9,6 +10,12 @@ import {
   getAvailableMarkets,
 } from "@/lib/steam-moves-db";
 import "@/styles/steam-moves-page.css";
+
+export const metadata: Metadata = {
+  title: "Steam Moves",
+  description:
+    "Real-time steam move detection across Premier League and Serie A. Spot sharp money, line movements, and bookmaker reactions before kickoff.",
+};
 
 // Revalidate every 30 minutes
 export const revalidate = 1800;

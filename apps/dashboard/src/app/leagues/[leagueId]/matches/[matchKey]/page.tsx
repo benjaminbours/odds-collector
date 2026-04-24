@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   getLeagueById,
   CURRENT_SEASON,
@@ -13,6 +14,22 @@ import "@/styles/match-page.css";
 
 interface PageProps {
   params: Promise<{ leagueId: string; matchKey: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { leagueId: leagueSlug, matchKey: matchSlug } = await params;
+  const league = getLeagueById(fromSlug(leagueSlug));
+  if (!league) return {};
+  // Derive team names from the match key slug (home_away_YYYY-MM-DD)
+  const parts = fromSlug(decodeURIComponent(matchSlug)).split("_");
+  const dateIndex = parts.findIndex((p) => /^\d{4}-\d{2}-\d{2}$/.test(p));
+  const home = dateIndex > 1 ? parts.slice(0, dateIndex - 1).join(" ") : "";
+  const away = dateIndex > 1 ? parts[dateIndex - 1] : "";
+  const matchTitle = home && away ? `${home} vs ${away}` : "Match";
+  return {
+    title: matchTitle,
+    description: `Odds movements and steam moves for ${matchTitle} (${league.name}). Compare bookmaker shifts across 7 pre-match timings.`,
+  };
 }
 
 async function getMatchDetails(

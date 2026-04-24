@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { DateGroupedMatches } from "@/components/DateGroupedMatches";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { getLeagueById, CURRENT_SEASON } from "@odds-collector/shared";
@@ -9,6 +10,16 @@ import "@/styles/league-page.css";
 
 interface PageProps {
   params: Promise<{ leagueId: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { leagueId: leagueSlug } = await params;
+  const league = getLeagueById(fromSlug(leagueSlug));
+  if (!league) return {};
+  return {
+    title: league.name,
+    description: `Odds movements, steam moves, and value bets for ${league.name} ${CURRENT_SEASON}. Track sharp money and bookmaker shifts match by match.`,
+  };
 }
 
 export default async function LeaguePage({ params }: PageProps) {
