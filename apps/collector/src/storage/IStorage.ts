@@ -55,4 +55,9 @@ export interface IStorage {
     season: string,
     snapshotId: string
   ): Promise<void>;
+
+  /**
+   * Read a snapshot by its full storage path (as stored in D1 snapshots.r2_path).
+   */
+  readByPath(storagePath: string): Promise<OddsSnapshot | null>;
 }

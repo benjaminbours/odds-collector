@@ -163,6 +163,13 @@ export class LocalStorage implements IStorage {
     return JSON.parse(content) as MatchIndex;
   }
 
+  async readByPath(storagePath: string): Promise<OddsSnapshot | null> {
+    const filePath = path.join(this.basePath, storagePath);
+    if (!fs.existsSync(filePath)) return null;
+    const content = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(content) as OddsSnapshot;
+  }
+
   /**
    * Delete a snapshot
    */

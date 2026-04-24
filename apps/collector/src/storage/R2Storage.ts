@@ -188,6 +188,29 @@ export class R2Storage implements IStorage {
     return key;
   }
 
+  async readByPath(storagePath: string): Promise<OddsSnapshot | null> {
+    try {
+      const response = await this.withRetry(
+        () =>
+          this.client.send(
+            new GetObjectCommand({ Bucket: this.bucketName, Key: storagePath }),
+          ),
+        `readByPath(${storagePath})`,
+      );
+      if (!response.Body) return null;
+      const body = await response.Body.transformToString("utf-8");
+      return JSON.parse(body);
+    } catch (error: any) {
+      if (
+        error.name === "NoSuchKey" ||
+        error.$metadata?.httpStatusCode === 404
+      ) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
   async getSnapshot(
     leagueId: string,
     season: string,
