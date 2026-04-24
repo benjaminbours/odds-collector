@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { LeagueCard } from "@/components/LeagueCard";
 import { MatchCard } from "@/components/MatchCard";
-import { LEAGUES, CURRENT_SEASON } from "@odds-collector/shared";
+import { LEAGUES } from "@odds-collector/shared";
+import type { SteamMove } from "@odds-collector/shared";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getUpcomingMatchesAcrossLeagues, type MatchWithKey } from "@/lib/matches-db";
+import { getTopUpcomingSteamMoves } from "@/lib/steam-moves-db";
 import { toSlug } from "@/lib/url-utils";
 import "@/styles/page.css";
 import "@/styles/home-preview.css";
@@ -13,32 +15,6 @@ export const revalidate = 1800;
 
 interface UpcomingItem extends MatchWithKey {
   leagueName: string;
-}
-
-interface SteamMovePreview {
-  leagueId: string;
-  matchKey: string;
-  homeTeam: string;
-  awayTeam: string;
-  kickoffTime: string;
-  marketLabel: string;
-  outcome: string;
-  bookmaker: string;
-  fromOdds: number;
-  toOdds: number;
-  movement: number;
-  direction: "shortening" | "drifting";
-}
-
-// Shape of the pre-computed per-league steam_moves_recent.json file
-interface SteamMovesRecentFile {
-  leagueId: string;
-  season: string;
-  steamMoves: SteamMovePreview[];
-  generatedAt: string;
-  availableMarkets: string[];
-  fromDate: string;
-  toDate: string;
 }
 
 async function getUpcomingMatches(): Promise<UpcomingItem[]> {
@@ -60,31 +36,18 @@ async function getUpcomingMatches(): Promise<UpcomingItem[]> {
 }
 
 /**
- * Top steam moves across all leagues from their per-league `steam_moves_recent.json`
- * files. These are written by the offline steam-moves script; homepage just picks
- * the top 5 by magnitude.
+ * Top 5 upcoming steam moves by |movement| across the next 7 days.
+ * Behavior change from the R2 era: used to surface the past 14 days'
+ * top-5 (reading per-league `steam_moves_recent.json`); now surfaces
+ * what's about to happen instead.
  */
-async function getTopSteamMoves(): Promise<SteamMovePreview[]> {
+async function getTopSteamMoves(): Promise<SteamMove[]> {
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const bucket = env.ODDS_BUCKET;
-    const season = CURRENT_SEASON;
-
-    const files = await Promise.all(
-      LEAGUES.map(async (league) => {
-        const key = `odds_data_v2/leagues/${league.id}/${season}/steam_moves_recent.json`;
-        const obj = await bucket.get(key);
-        if (!obj) return null;
-        return (await obj.json()) as SteamMovesRecentFile;
-      })
-    );
-
-    const all: SteamMovePreview[] = [];
-    for (const file of files) {
-      if (file) all.push(...file.steamMoves);
-    }
-    all.sort((a, b) => Math.abs(b.movement) - Math.abs(a.movement));
-    return all.slice(0, 5);
+    return await getTopUpcomingSteamMoves(env.DB, {
+      hoursAhead: 24 * 7,
+      limit: 5,
+    });
   } catch (error) {
     console.error("Error fetching steam moves preview:", error);
     return [];
@@ -148,11 +111,11 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* Recent Steam Moves Preview */}
+      {/* Top Upcoming Steam Moves Preview */}
       <section className="page__section">
         <div className="page__section-header">
           <h2 className="page__section-title page__section-title--muted">
-            Recent Steam Moves
+            Top Upcoming Steam Moves
           </h2>
           <Link href="/steam-moves" className="page__view-all" prefetch={false}>
             View all →
