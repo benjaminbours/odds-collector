@@ -13,7 +13,8 @@
     "lint": "eslint src **/**.ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "backfill": "ts-node src/scripts/backfill.ts",
-    "populate-match-metadata": "ts-node src/scripts/populateMatchMetadata.ts"
+    "populate-match-metadata": "ts-node src/scripts/populateMatchMetadata.ts",
+    "populate-steam-moves": "ts-node src/scripts/populateSteamMoves.ts"
   },
   "keywords": [
     "sports",
