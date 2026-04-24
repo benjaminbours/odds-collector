@@ -8,6 +8,8 @@ import { TheOddsApiProvider } from "../providers/TheOddsApiProvider";
 import { R2Storage } from "../storage/R2Storage";
 import { JobScheduler } from "./JobScheduler";
 import { MatchMetadataRepository } from "./MatchMetadataRepository";
+import { SteamMoveOrchestrator } from "./SteamMoveOrchestrator";
+import { SteamMovesRepository } from "./SteamMovesRepository";
 import { ValueBetOrchestrator } from "./ValueBetOrchestrator";
 import { TimingOffset, OddsSnapshot } from "@odds-collector/shared";
 import { CollectionMetrics, CollectorLeagueConfig } from "../config/types";
@@ -57,6 +59,9 @@ export interface OddsCollectorConfig {
 
   /** Enable value bet detection at opening timing (default: false) */
   enableValueBetDetection?: boolean;
+
+  /** Enable real-time steam move detection at each job completion (default: true) */
+  enableSteamMoveDetection?: boolean;
 }
 
 export class OddsCollector {
@@ -74,6 +79,8 @@ export class OddsCollector {
   private requestDelay: number;
   private enableDiscovery: boolean;
   private discoveryDaysAhead: number;
+
+  private steamMoveOrchestrator: SteamMoveOrchestrator | null = null;
 
   // Value bet detection (optional - for track record)
   private valueBetOrchestrator: ValueBetOrchestrator | null = null;
@@ -94,6 +101,15 @@ export class OddsCollector {
     this.enableDiscovery = config.enableDiscovery ?? true;
     this.discoveryDaysAhead = config.discoveryDaysAhead ?? 14;
     this.enableValueBetDetection = config.enableValueBetDetection ?? false;
+
+    if (config.enableSteamMoveDetection !== false) {
+      this.steamMoveOrchestrator = new SteamMoveOrchestrator(
+        this.storage,
+        new SteamMovesRepository(config.db),
+        this.matchRepo,
+      );
+      console.log("✅ Steam move detection enabled");
+    }
 
     // Initialize value bet orchestrator if configured
     if (config.backendUrl && config.backendApiKey && this.enableValueBetDetection) {
@@ -359,6 +375,16 @@ export class OddsCollector {
         });
 
         console.log(`     ✅ Saved to: ${snapshotPath}`);
+
+        if (this.steamMoveOrchestrator) {
+          await this.steamMoveOrchestrator.detectAndStore({
+            matchKey,
+            leagueId: job.leagueId,
+            kickoffTime: job.kickoffTime,
+            currentTiming: job.timingOffset,
+            currentSnapshot: snapshot,
+          });
+        }
 
         // Value bet detection/CLV update (if enabled)
         if (this.valueBetOrchestrator) {

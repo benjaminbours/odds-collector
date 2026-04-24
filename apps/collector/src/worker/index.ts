@@ -44,6 +44,9 @@ export interface Env {
   BACKEND_URL?: string;
   BACKEND_API_KEY?: string;
   ENABLE_VALUE_BET_DETECTION?: string; // "true" or "false"
+
+  // Steam move detection (default: enabled; set "false" to disable)
+  ENABLE_STEAM_MOVE_DETECTION?: string;
 }
 
 /**
@@ -110,6 +113,7 @@ export default {
         regions: env.REGIONS || "eu",
         db: env.odds_collector_db, // Use D1 database binding
         enableDiscovery: isDiscoveryRun, // Only enable discovery on 6 AM run
+        enableSteamMoveDetection: env.ENABLE_STEAM_MOVE_DETECTION !== "false",
         // Value bet detection configuration
         backendUrl: env.BACKEND_URL,
         backendApiKey: env.BACKEND_API_KEY,

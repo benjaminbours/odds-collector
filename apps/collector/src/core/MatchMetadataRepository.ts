@@ -93,6 +93,19 @@ export class MatchMetadataRepository {
     return result.results.map(rowToSnapshot);
   }
 
+  async getSnapshotPath(
+    matchKey: string,
+    timing: string,
+  ): Promise<string | null> {
+    const row = await this.db
+      .prepare(
+        `SELECT r2_path FROM snapshots WHERE match_key = ? AND timing = ?`,
+      )
+      .bind(matchKey, timing)
+      .first<{ r2_path: string }>();
+    return row?.r2_path ?? null;
+  }
+
   async getMatchWithSnapshots(
     matchKey: string
   ): Promise<MatchWithSnapshots | null> {
