@@ -276,15 +276,29 @@ async function main() {
     process.exit(1);
   }
 
-  // Pull the full set of matches for the current season in one D1 query per
-  // league. 30 leagues × 1 query is cheap; each returns a few hundred rows.
+  // Bulk-load matches + snapshots per league in two queries total per league,
+  // then index by match_key. Earlier revision issued one D1 query per match
+  // for its snapshot paths, which fired N wrangler processes against the
+  // Cloudflare API in rapid succession and tripped a rate-limited auth error
+  // (code 10000) around ~50 matches in.
   const allMatches: MatchRow[] = [];
+  const snapshotsByMatch = new Map<string, SnapshotRow[]>();
   for (const league of leaguesToProcess) {
-    const rows = queryD1<MatchRow>(
+    const matchRows = queryD1<MatchRow>(
       `SELECT match_key, league_id, home_team, away_team, kickoff_time FROM matches WHERE season = '${sqlEscape(CURRENT_SEASON)}' AND league_id = '${sqlEscape(league.id)}' ORDER BY kickoff_time`
     );
-    allMatches.push(...rows);
-    console.log(`  ${league.id}: ${rows.length} matches`);
+    const snapshotRows = queryD1<SnapshotRow>(
+      `SELECT s.match_key, s.timing, s.r2_path FROM snapshots s JOIN matches m ON m.match_key = s.match_key WHERE m.season = '${sqlEscape(CURRENT_SEASON)}' AND m.league_id = '${sqlEscape(league.id)}' ORDER BY s.match_key, s.timing`
+    );
+    for (const row of snapshotRows) {
+      const list = snapshotsByMatch.get(row.match_key);
+      if (list) list.push(row);
+      else snapshotsByMatch.set(row.match_key, [row]);
+    }
+    allMatches.push(...matchRows);
+    console.log(
+      `  ${league.id}: ${matchRows.length} matches, ${snapshotRows.length} snapshot rows`
+    );
   }
   console.log(`\nTotal: ${allMatches.length} matches to consider\n`);
 
@@ -319,10 +333,7 @@ async function main() {
       continue;
     }
 
-    // Pull snapshot paths for this match.
-    const snapshotRows = queryD1<SnapshotRow>(
-      `SELECT match_key, timing, r2_path FROM snapshots WHERE match_key = '${sqlEscape(match.match_key)}' ORDER BY timing`
-    );
+    const snapshotRows = snapshotsByMatch.get(match.match_key) ?? [];
     if (snapshotRows.length < 2) {
       // Not enough snapshots to detect a move — still mark past matches
       // processed so we don't keep re-querying them forever.
