@@ -38,9 +38,6 @@ REGIONS = "eu,uk"
 # - R2_SECRET_ACCESS_KEY: R2 secret access key
 
 [observability]
-enabled = false
-head_sampling_rate = 1
-
 [observability.logs]
 enabled = true
 head_sampling_rate = 1
