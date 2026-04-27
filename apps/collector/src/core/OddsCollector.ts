@@ -11,6 +11,10 @@ import { MatchMetadataRepository } from "./MatchMetadataRepository";
 import { SteamMoveOrchestrator } from "./SteamMoveOrchestrator";
 import { SteamMovesRepository } from "./SteamMovesRepository";
 import { ValueBetOrchestrator } from "./ValueBetOrchestrator";
+import { XClient, XClientCredentials } from "./XClient";
+import { XPostsRepository } from "./XPostsRepository";
+import { XPostOrchestrator } from "./XPostOrchestrator";
+import { getLeagueConfig } from "../config/leagues";
 import { TimingOffset, OddsSnapshot } from "@odds-collector/shared";
 import { CollectionMetrics, CollectorLeagueConfig } from "../config/types";
 import {
@@ -62,6 +66,12 @@ export interface OddsCollectorConfig {
 
   /** Enable real-time steam move detection at each job completion (default: true) */
   enableSteamMoveDetection?: boolean;
+
+  /** X (Twitter) OAuth 1.0a user-context credentials. Required for posting. */
+  xCredentials?: XClientCredentials;
+
+  /** Enable posting qualifying steam moves to X (default: false). */
+  enableXPosting?: boolean;
 }
 
 export class OddsCollector {
@@ -103,10 +113,20 @@ export class OddsCollector {
     this.enableValueBetDetection = config.enableValueBetDetection ?? false;
 
     if (config.enableSteamMoveDetection !== false) {
+      let xPostOrchestrator: XPostOrchestrator | null = null;
+      if (config.enableXPosting && config.xCredentials) {
+        xPostOrchestrator = new XPostOrchestrator({
+          xClient: new XClient(config.xCredentials),
+          xPostsRepo: new XPostsRepository(config.db),
+          leagueHashtag: (leagueId) => getLeagueConfig(leagueId)?.hashtag,
+        });
+        console.log("✅ X posting enabled (sharp-book h2h ≥15%)");
+      }
       this.steamMoveOrchestrator = new SteamMoveOrchestrator(
         this.storage,
         new SteamMovesRepository(config.db),
         this.matchRepo,
+        xPostOrchestrator,
       );
       console.log("✅ Steam move detection enabled");
     }
@@ -380,6 +400,8 @@ export class OddsCollector {
           await this.steamMoveOrchestrator.detectAndStore({
             matchKey,
             leagueId: job.leagueId,
+            homeTeam: job.homeTeam,
+            awayTeam: job.awayTeam,
             kickoffTime: job.kickoffTime,
             currentTiming: job.timingOffset,
             currentSnapshot: snapshot,

@@ -1,25 +1,37 @@
-import type { OddsSnapshot } from "@odds-collector/shared";
+import type { OddsSnapshot, SteamMove } from "@odds-collector/shared";
 import type { IStorage } from "../storage/IStorage";
 import { SteamMovesRepository } from "./SteamMovesRepository";
 import { MatchMetadataRepository } from "./MatchMetadataRepository";
 import { detectMoves, getPrecedingTiming } from "./steamMoveDetector";
+import type { XPostOrchestrator } from "./XPostOrchestrator";
 
 export class SteamMoveOrchestrator {
   constructor(
     private storage: IStorage,
     private steamRepo: SteamMovesRepository,
     private matchRepo: MatchMetadataRepository,
+    /** Optional — when provided, qualifying moves are also tweeted. */
+    private xPostOrchestrator: XPostOrchestrator | null = null,
   ) {}
 
   async detectAndStore(params: {
     matchKey: string;
     leagueId: string;
+    homeTeam: string;
+    awayTeam: string;
     kickoffTime: string;
     currentTiming: string;
     currentSnapshot: OddsSnapshot;
   }): Promise<void> {
-    const { matchKey, leagueId, kickoffTime, currentTiming, currentSnapshot } =
-      params;
+    const {
+      matchKey,
+      leagueId,
+      homeTeam,
+      awayTeam,
+      kickoffTime,
+      currentTiming,
+      currentSnapshot,
+    } = params;
 
     try {
       const prevTiming = getPrecedingTiming(currentTiming);
@@ -43,6 +55,14 @@ export class SteamMoveOrchestrator {
 
       for (const move of moves) {
         await this.steamRepo.upsertMove(move);
+
+        if (this.xPostOrchestrator) {
+          // Enrich with team names (the D1 row + UpsertSteamMoveInput drop them
+          // since they're joined from `matches` on read; the formatter needs
+          // them for the tweet body).
+          const fullMove: SteamMove = { ...move, homeTeam, awayTeam };
+          await this.xPostOrchestrator.maybePostMove(fullMove);
+        }
       }
 
       if (moves.length > 0) {
