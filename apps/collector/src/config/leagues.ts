@@ -9,6 +9,8 @@ export interface WorkerLeagueConfig {
   id: string;
   name: string;
   oddsApiKey: string;
+  /** Hashtag (sans `#`) used in X posts for this league. */
+  hashtag: string;
 }
 
 export const LEAGUES: WorkerLeagueConfig[] = [
@@ -16,11 +18,13 @@ export const LEAGUES: WorkerLeagueConfig[] = [
     id: "england_premier_league",
     name: "English Premier League",
     oddsApiKey: "soccer_epl",
+    hashtag: "PremierLeague",
   },
   {
     id: "italy_serie_a",
     name: "Italian Serie A",
     oddsApiKey: "soccer_italy_serie_a",
+    hashtag: "SerieA",
   },
 ];
 
