@@ -21,6 +21,7 @@ import { TimingPresets } from "../config/timingPresets";
 import { normalizeTeamName } from "@odds-collector/team-normalization";
 import { getLeagueConfig } from "../config/leagues";
 import { ValueBetService } from "../core/ValueBetService";
+import { XClient } from "../core/XClient";
 import type { ValueBetStatus, ValueBetOutcome } from "@odds-collector/shared";
 import type { CreateValueBetRequest } from "../config/types";
 
@@ -47,6 +48,17 @@ export interface Env {
 
   // Steam move detection (default: enabled; set "false" to disable)
   ENABLE_STEAM_MOVE_DETECTION?: string;
+
+  // X (Twitter) API v2 — OAuth 1.0a user-context auth for posting tweets.
+  // All four must be set together; if any is missing, posting is disabled.
+  X_API_KEY?: string;
+  X_API_SECRET?: string;
+  X_ACCESS_TOKEN?: string;
+  X_ACCESS_TOKEN_SECRET?: string;
+
+  // Master switch for posting steam moves to X. Defaults to off so the four
+  // creds can be deployed before posting goes live.
+  ENABLE_X_POSTING?: string;
 }
 
 /**
@@ -96,6 +108,19 @@ export default {
       const leagueIds = JSON.parse(env.LEAGUES) as string[];
       console.log(`Processing ${leagueIds.length} leagues:`, leagueIds);
 
+      const xCredentials =
+        env.X_API_KEY &&
+        env.X_API_SECRET &&
+        env.X_ACCESS_TOKEN &&
+        env.X_ACCESS_TOKEN_SECRET
+          ? {
+              apiKey: env.X_API_KEY,
+              apiSecret: env.X_API_SECRET,
+              accessToken: env.X_ACCESS_TOKEN,
+              accessTokenSecret: env.X_ACCESS_TOKEN_SECRET,
+            }
+          : undefined;
+
       // Initialize collector with R2 storage and D1 database
       const collector = new OddsCollector({
         provider: new TheOddsApiProvider({
@@ -118,6 +143,9 @@ export default {
         backendUrl: env.BACKEND_URL,
         backendApiKey: env.BACKEND_API_KEY,
         enableValueBetDetection: env.ENABLE_VALUE_BET_DETECTION === "true",
+        // X posting configuration
+        xCredentials,
+        enableXPosting: env.ENABLE_X_POSTING === "true",
       });
 
       // Add all configured leagues with team name normalization
@@ -758,6 +786,62 @@ export default {
       }
     }
 
+    // POST /admin/test-tweet - Spike endpoint to validate X API OAuth 1.0a
+    // signing end-to-end before wiring posting into the steam-move pipeline.
+    // Body: { "text": "..." }. Auth: Bearer ${ODDS_API_KEY}.
+    if (url.pathname === "/admin/test-tweet" && request.method === "POST") {
+      const authHeader = request.headers.get("Authorization");
+      if (authHeader !== `Bearer ${env.ODDS_API_KEY}`) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
+      if (
+        !env.X_API_KEY ||
+        !env.X_API_SECRET ||
+        !env.X_ACCESS_TOKEN ||
+        !env.X_ACCESS_TOKEN_SECRET
+      ) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "X credentials not configured. Set X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET via wrangler secret put.",
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      try {
+        const body = (await request.json()) as { text?: string };
+        if (!body.text || typeof body.text !== "string") {
+          return new Response(
+            JSON.stringify({ error: "Body must be { text: string }" }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const client = new XClient({
+          apiKey: env.X_API_KEY,
+          apiSecret: env.X_API_SECRET,
+          accessToken: env.X_ACCESS_TOKEN,
+          accessTokenSecret: env.X_ACCESS_TOKEN_SECRET,
+        });
+
+        const result = await client.postTweet(body.text);
+
+        return new Response(JSON.stringify({ success: true, tweet: result }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            error: "Failed to post tweet",
+            message: (error as Error).message,
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     return new Response(
       "Not Found\n\nAvailable endpoints:\n" +
       "- GET / or /dashboard (HTML or JSON based on Accept header)\n" +
@@ -771,7 +855,8 @@ export default {
       "- POST /api/value-bets (internal)\n" +
       "- PATCH /api/value-bets/:id/clv (internal)\n" +
       "- PATCH /api/value-bets/:id/outcome (internal)\n" +
-      "- PATCH /api/value-bets/:id/posted (internal)",
+      "- PATCH /api/value-bets/:id/posted (internal)\n" +
+      "- POST /admin/test-tweet (requires auth, X spike)",
       {
         status: 404,
       }
