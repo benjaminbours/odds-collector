@@ -5,7 +5,7 @@
  * should be imported directly from '@odds-collector/shared'
  */
 
-import type { EventOdds, ValueBetOutcome } from '@odds-collector/shared';
+import type { EventOdds, TimingOffset, ValueBetOutcome } from '@odds-collector/shared';
 
 /**
  * League configuration for the collector
@@ -21,6 +21,19 @@ export interface CollectorLeagueConfig {
   season: string;
   /** Optional team name normalization function */
   normalizeTeamName?: (name: string) => string;
+  /**
+   * Optional per-league timing offsets. Overrides the collector-level
+   * default when set — used for tournaments (e.g. World Cup) that need a
+   * denser pre-match curve than league play.
+   */
+  timings?: TimingOffset[];
+  /**
+   * Optional fixed season string used at execution time. When set, overrides
+   * the date-based `inferSeasonFromDate` inference — required for tournaments
+   * like the World Cup whose match dates fall in summer (June/July) and
+   * therefore don't fit the European Aug–May season convention.
+   */
+  seasonOverride?: string;
 }
 
 /**

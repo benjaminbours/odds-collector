@@ -2,7 +2,7 @@ import type { OddsSnapshot, SteamMove } from "@odds-collector/shared";
 import type { IStorage } from "../storage/IStorage";
 import { SteamMovesRepository } from "./SteamMovesRepository";
 import { MatchMetadataRepository } from "./MatchMetadataRepository";
-import { detectMoves, getPrecedingTiming } from "./steamMoveDetector";
+import { detectMoves, findPrecedingAvailableTiming } from "./steamMoveDetector";
 import type { XPostOrchestrator } from "./XPostOrchestrator";
 
 export class SteamMoveOrchestrator {
@@ -34,11 +34,14 @@ export class SteamMoveOrchestrator {
     } = params;
 
     try {
-      const prevTiming = getPrecedingTiming(currentTiming);
-      if (!prevTiming) return; // opening has no prior
+      const prevTiming = await findPrecedingAvailableTiming(
+        currentTiming,
+        async (t) => (await this.matchRepo.getSnapshotPath(matchKey, t)) !== null,
+      );
+      if (!prevTiming) return; // first stored snapshot for this match
 
       const prevPath = await this.matchRepo.getSnapshotPath(matchKey, prevTiming);
-      if (!prevPath) return; // prior timing was skipped or failed
+      if (!prevPath) return;
 
       const prevSnapshot = await this.storage.readByPath(prevPath);
       if (!prevSnapshot) return;

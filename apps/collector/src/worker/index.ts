@@ -156,14 +156,26 @@ export default {
           continue;
         }
 
-        const season = inferCurrentSeason();
+        // Per-league timing preset (e.g. WORLD_CUP) overrides the env-level
+        // default. Falls back to env preset, then COMPREHENSIVE.
+        const leagueTimings = leagueConfig.timingPreset
+          ? TimingPresets[leagueConfig.timingPreset]
+          : undefined;
+
+        // Sources without a normalization mapping (e.g. world_cup_2026) opt
+        // out so the package doesn't warn for every team.
+        const useNormalization = leagueConfig.normalizeTeamNames !== false;
+
+        const season = leagueConfig.season ?? inferCurrentSeason();
         collector.addLeague({
           id: leagueConfig.id,
           providerKey: leagueConfig.oddsApiKey,
           season,
-          // Use footdata's team name normalization
-          normalizeTeamName: (teamName: string) =>
-            normalizeTeamName(leagueId, teamName),
+          normalizeTeamName: useNormalization
+            ? (teamName: string) => normalizeTeamName(leagueId, teamName)
+            : undefined,
+          timings: leagueTimings,
+          seasonOverride: leagueConfig.season,
         });
       }
 

@@ -223,6 +223,10 @@ export class OddsCollector {
         console.log(`     Found ${events.length} upcoming events`);
         totalEventsFound += events.length;
 
+        // Per-league timings override the collector default (e.g. World Cup
+        // uses a denser curve than regular league play).
+        const leagueTimings = league.timings ?? this.timings;
+
         // Schedule jobs for each event at each timing offset
         for (const event of events) {
           const matchDate = event.commenceTime.split("T")[0];
@@ -235,7 +239,7 @@ export class OddsCollector {
             ? league.normalizeTeamName(event.awayTeam)
             : event.awayTeam;
 
-          for (const timing of this.timings) {
+          for (const timing of leagueTimings) {
             const scheduledTime = calculateScheduledTime(
               event.commenceTime,
               timing.hoursBeforeKickoff
@@ -328,8 +332,9 @@ export class OddsCollector {
           throw new Error(`League config not found: ${job.leagueId}`);
         }
 
-        // Get timing config
-        const timing = this.timings.find((t) => t.name === job.timingOffset);
+        // Resolve timing config from per-league timings if defined
+        const leagueTimings = league.timings ?? this.timings;
+        const timing = leagueTimings.find((t) => t.name === job.timingOffset);
         if (!timing) {
           throw new Error(`Timing config not found: ${job.timingOffset}`);
         }
@@ -342,8 +347,10 @@ export class OddsCollector {
           this.regions
         );
 
-        // Create snapshot
-        const season = inferSeasonFromDate(job.matchDate);
+        // Create snapshot. Tournaments (e.g. World Cup) override the
+        // date-based season inference because their match dates fall outside
+        // the European Aug–May convention.
+        const season = league.seasonOverride ?? inferSeasonFromDate(job.matchDate);
         const snapshot: OddsSnapshot = {
           metadata: {
             timestamp: new Date().toISOString(),

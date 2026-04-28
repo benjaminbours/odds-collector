@@ -2,13 +2,25 @@ import type { OddsSnapshot } from "@odds-collector/shared";
 import type { UpsertSteamMoveInput } from "./SteamMovesRepository";
 import { toPointKey } from "./SteamMovesRepository";
 
+// Ordered curve from earliest to latest. Detection chains snapshots by
+// looking at the immediately preceding entry (`getPrecedingTiming`); any
+// timing not present here will fire snapshots without triggering detection.
+// Tournament-only entries (t_minus_35d → t_minus_14d, t_minus_60m,
+// t_minus_15m) are inert for league play because no jobs are scheduled at
+// those timings, but they must be present so the World Cup preset can chain.
 export const TIMING_ORDER = [
+  "t_minus_35d",
+  "t_minus_28d",
+  "t_minus_21d",
+  "t_minus_14d",
   "opening",
   "mid_week",
   "day_before",
   "t_minus_4h",
   "t_minus_90m",
+  "t_minus_60m",
   "t_minus_30m",
+  "t_minus_15m",
   "closing",
 ] as const;
 
@@ -38,6 +50,25 @@ export function getPrecedingTiming(timing: string): string | null {
   const idx = TIMING_ORDER.indexOf(timing as (typeof TIMING_ORDER)[number]);
   if (idx <= 0) return null;
   return TIMING_ORDER[idx - 1];
+}
+
+/**
+ * Walk TIMING_ORDER backwards from `timing` and return the first earlier
+ * entry for which `hasSnapshot` is true. Lets detection chain across
+ * presets that don't include every TIMING_ORDER entry — e.g. league play
+ * (COMPREHENSIVE) skips `t_minus_15m`, so when `closing` lands the chain
+ * falls through to `t_minus_30m`.
+ */
+export async function findPrecedingAvailableTiming(
+  timing: string,
+  hasSnapshot: (timing: string) => Promise<boolean>,
+): Promise<string | null> {
+  const idx = TIMING_ORDER.indexOf(timing as (typeof TIMING_ORDER)[number]);
+  if (idx <= 0) return null;
+  for (let i = idx - 1; i >= 0; i--) {
+    if (await hasSnapshot(TIMING_ORDER[i])) return TIMING_ORDER[i];
+  }
+  return null;
 }
 
 export function detectMoves(

@@ -25,7 +25,7 @@ database_id = "5ad1cd7e-cfc9-4010-b272-c91c82c7f651"
 [vars]
 TIMING_PRESET = "COMPREHENSIVE"  # MINIMAL | BASIC | STANDARD | COMPREHENSIVE
 # Active leagues for odds collection
-LEAGUES = '["england_premier_league","italy_serie_a"]'
+LEAGUES = '["england_premier_league","italy_serie_a", "world_cup_2026"]'
 # Comma-separated regions for the-odds-api event-odds fetches. Each extra
 # region multiplies credit cost by (markets × regions). eu has Pinnacle;
 # uk has Betfair Exchange + major UK books.
