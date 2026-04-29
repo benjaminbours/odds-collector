@@ -34,25 +34,6 @@ export function getPrecedingTiming(timing: string): string | null {
   return TIMING_ORDER[idx - 1];
 }
 
-/**
- * Walk TIMING_ORDER backwards from `timing` and return the first earlier
- * entry for which `hasSnapshot` is true. Lets detection chain across
- * presets that don't include every TIMING_ORDER entry — e.g. league play
- * (COMPREHENSIVE) skips `t_minus_15m`, so when `closing` lands the chain
- * falls through to `t_minus_30m`.
- */
-export async function findPrecedingAvailableTiming(
-  timing: string,
-  hasSnapshot: (timing: string) => Promise<boolean>,
-): Promise<string | null> {
-  const idx = TIMING_ORDER.indexOf(timing as (typeof TIMING_ORDER)[number]);
-  if (idx <= 0) return null;
-  for (let i = idx - 1; i >= 0; i--) {
-    if (await hasSnapshot(TIMING_ORDER[i])) return TIMING_ORDER[i];
-  }
-  return null;
-}
-
 export function detectMoves(
   fromTiming: string,
   fromSnapshot: OddsSnapshot,

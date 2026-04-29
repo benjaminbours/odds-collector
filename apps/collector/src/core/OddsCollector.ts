@@ -81,6 +81,7 @@ export interface OddsCollectorConfig {
 export class OddsCollector {
   private provider: TheOddsApiProvider;
   private storage: R2Storage;
+  private db: D1Database;
   private scheduler: JobScheduler;
   private matchRepo: MatchMetadataRepository;
   private timings: TimingOffset[];
@@ -106,6 +107,7 @@ export class OddsCollector {
     this.timings = config.timings;
     this.regions = config.regions ?? "eu";
     this.regionCount = this.regions.split(",").filter(Boolean).length;
+    this.db = config.db;
     this.scheduler = new JobScheduler({ db: config.db });
     this.matchRepo = new MatchMetadataRepository(config.db);
 
@@ -374,32 +376,40 @@ export class OddsCollector {
           snapshot
         );
 
-        // Mark as completed
-        await this.scheduler.updateJobStatus(job.id, "completed", snapshotPath);
-
-        // Persist canonical match metadata (D1). Team names on the job row are
-        // already normalized (see discoverEvents), so reuse them directly.
+        // Team names on the job row are already normalized (see
+        // discoverEvents), so reuse them directly.
         const matchKey = generateMatchKey(
           job.homeTeam,
           job.awayTeam,
           job.matchDate
         );
-        await this.matchRepo.upsertMatch({
-          matchKey,
-          leagueId: job.leagueId,
-          season,
-          eventId: job.eventId,
-          homeTeam: job.homeTeam,
-          awayTeam: job.awayTeam,
-          matchDate: job.matchDate,
-          kickoffTime: job.kickoffTime,
-        });
-        await this.matchRepo.upsertSnapshot({
-          matchKey,
-          timing: job.timingOffset,
-          r2Path: snapshotPath,
-          collectedAt: snapshot.metadata.timestamp,
-        });
+
+        // Atomically: mark job completed + upsert match + upsert snapshot.
+        // One D1 subrequest instead of three; if any fails, all roll back and
+        // the outer catch retries the job on the next cron.
+        await this.db.batch([
+          this.scheduler.buildUpdateJobStatusStatement(
+            job.id,
+            "completed",
+            snapshotPath
+          ),
+          this.matchRepo.buildUpsertMatchStatement({
+            matchKey,
+            leagueId: job.leagueId,
+            season,
+            eventId: job.eventId,
+            homeTeam: job.homeTeam,
+            awayTeam: job.awayTeam,
+            matchDate: job.matchDate,
+            kickoffTime: job.kickoffTime,
+          }),
+          this.matchRepo.buildUpsertSnapshotStatement({
+            matchKey,
+            timing: job.timingOffset,
+            r2Path: snapshotPath,
+            collectedAt: snapshot.metadata.timestamp,
+          }),
+        ]);
 
         console.log(`     ✅ Saved to: ${snapshotPath}`);
 

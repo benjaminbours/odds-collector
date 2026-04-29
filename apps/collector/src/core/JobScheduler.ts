@@ -135,7 +135,26 @@ export class JobScheduler {
     snapshotPath?: string,
     error?: string
   ): Promise<void> {
-    await this.db
+    await this.buildUpdateJobStatusStatement(
+      jobId,
+      status,
+      snapshotPath,
+      error
+    ).run();
+  }
+
+  /**
+   * Prepared-statement form of {@link updateJobStatus}, for use inside a
+   * `db.batch([...])` transaction (e.g. completing a job + writing match
+   * metadata atomically).
+   */
+  buildUpdateJobStatusStatement(
+    jobId: string,
+    status: "running" | "completed" | "failed",
+    snapshotPath?: string,
+    error?: string
+  ): D1PreparedStatement {
+    return this.db
       .prepare(
         `
       UPDATE scheduled_jobs
@@ -148,8 +167,7 @@ export class JobScheduler {
       WHERE id = ?
     `
       )
-      .bind(status, snapshotPath || null, error || null, status, jobId)
-      .run();
+      .bind(status, snapshotPath || null, error || null, status, jobId);
   }
 
   /**

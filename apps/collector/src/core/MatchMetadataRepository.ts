@@ -11,6 +11,7 @@ import type {
   SnapshotRecord,
   MatchWithSnapshots,
 } from "@odds-collector/shared";
+import { TIMING_ORDER } from "@odds-collector/shared";
 
 export interface UpsertMatchInput {
   matchKey: string;
@@ -34,7 +35,11 @@ export class MatchMetadataRepository {
   constructor(private db: D1Database) {}
 
   async upsertMatch(input: UpsertMatchInput): Promise<void> {
-    await this.db
+    await this.buildUpsertMatchStatement(input).run();
+  }
+
+  buildUpsertMatchStatement(input: UpsertMatchInput): D1PreparedStatement {
+    return this.db
       .prepare(
         `INSERT INTO matches (
            match_key, league_id, season, event_id,
@@ -60,12 +65,15 @@ export class MatchMetadataRepository {
         input.awayTeam,
         input.matchDate,
         input.kickoffTime
-      )
-      .run();
+      );
   }
 
   async upsertSnapshot(input: UpsertSnapshotInput): Promise<void> {
-    await this.db
+    await this.buildUpsertSnapshotStatement(input).run();
+  }
+
+  buildUpsertSnapshotStatement(input: UpsertSnapshotInput): D1PreparedStatement {
+    return this.db
       .prepare(
         `INSERT INTO snapshots (match_key, timing, r2_path, collected_at)
          VALUES (?, ?, ?, ?)
@@ -73,8 +81,7 @@ export class MatchMetadataRepository {
            r2_path      = excluded.r2_path,
            collected_at = excluded.collected_at`
       )
-      .bind(input.matchKey, input.timing, input.r2Path, input.collectedAt)
-      .run();
+      .bind(input.matchKey, input.timing, input.r2Path, input.collectedAt);
   }
 
   async getMatch(matchKey: string): Promise<MatchRecord | null> {
@@ -104,6 +111,46 @@ export class MatchMetadataRepository {
       .bind(matchKey, timing)
       .first<{ r2_path: string }>();
     return row?.r2_path ?? null;
+  }
+
+  /**
+   * Return the most recent stored snapshot for `matchKey` whose timing comes
+   * before `currentTiming` in `TIMING_ORDER`, or null if none exists.
+   *
+   * One D1 query instead of the per-timing walk in `findPrecedingAvailableTiming`
+   * (which can be up to 12 sequential queries on a closing snapshot in dense
+   * presets like WORLD_CUP).
+   */
+  async getPrecedingSnapshot(
+    matchKey: string,
+    currentTiming: string,
+  ): Promise<{ timing: string; r2Path: string } | null> {
+    const idx = TIMING_ORDER.indexOf(currentTiming as (typeof TIMING_ORDER)[number]);
+    if (idx <= 0) return null;
+
+    const earlierTimings = TIMING_ORDER.slice(0, idx);
+    const placeholders = earlierTimings.map(() => "?").join(", ");
+
+    const result = await this.db
+      .prepare(
+        `SELECT timing, r2_path FROM snapshots
+         WHERE match_key = ? AND timing IN (${placeholders})`,
+      )
+      .bind(matchKey, ...earlierTimings)
+      .all<{ timing: string; r2_path: string }>();
+
+    if (result.results.length === 0) return null;
+
+    let bestIdx = -1;
+    let best: { timing: string; r2Path: string } | null = null;
+    for (const row of result.results) {
+      const i = TIMING_ORDER.indexOf(row.timing as (typeof TIMING_ORDER)[number]);
+      if (i > bestIdx) {
+        bestIdx = i;
+        best = { timing: row.timing, r2Path: row.r2_path };
+      }
+    }
+    return best;
   }
 
   async getMatchWithSnapshots(
