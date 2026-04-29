@@ -16,7 +16,11 @@ import { XPostsRepository } from "./XPostsRepository";
 import { XPostOrchestrator } from "./XPostOrchestrator";
 import { getLeagueConfig } from "../config/leagues";
 import { TimingOffset, OddsSnapshot } from "@odds-collector/shared";
-import { CollectionMetrics, CollectorLeagueConfig } from "../config/types";
+import {
+  CollectionMetrics,
+  CollectorLeagueConfig,
+  ScheduledJob,
+} from "../config/types";
 import {
   generateJobId,
   generateMatchKey,
@@ -227,11 +231,13 @@ export class OddsCollector {
         // uses a denser curve than regular league play).
         const leagueTimings = league.timings ?? this.timings;
 
-        // Schedule jobs for each event at each timing offset
+        const pendingJobs: Array<
+          Omit<ScheduledJob, "attempts" | "status" | "createdAt">
+        > = [];
+
         for (const event of events) {
           const matchDate = event.commenceTime.split("T")[0];
 
-          // Apply team name normalization if provided
           const homeTeam = league.normalizeTeamName
             ? league.normalizeTeamName(event.homeTeam)
             : event.homeTeam;
@@ -245,7 +251,6 @@ export class OddsCollector {
               timing.hoursBeforeKickoff
             );
 
-            // Skip if already past the scheduled time
             if (new Date(scheduledTime) < now) {
               console.log("Job past scheduled time, skipped: ", {
                 homeTeam,
@@ -255,10 +260,8 @@ export class OddsCollector {
               continue;
             }
 
-            const jobId = generateJobId(event.id, timing.name);
-
-            const inserted = await this.scheduler.scheduleJob({
-              id: jobId,
+            pendingJobs.push({
+              id: generateJobId(event.id, timing.name),
               leagueId: league.id,
               eventId: event.id,
               homeTeam,
@@ -268,14 +271,15 @@ export class OddsCollector {
               timingOffset: timing.name,
               scheduledTime,
             });
-
-            if (inserted) {
-              totalJobsScheduled++;
-            } else {
-              console.log("Job already scheduled:", jobId);
-            }
           }
         }
+
+        const inserted = await this.scheduler.scheduleJobsBatch(pendingJobs);
+        const skipped = pendingJobs.length - inserted;
+        totalJobsScheduled += inserted;
+        console.log(
+          `     Scheduled ${inserted} new jobs (${skipped} already existed)`
+        );
 
         // Rate limiting between leagues
         await this.delay(this.requestDelay);

@@ -25,7 +25,43 @@ export class JobScheduler {
   async scheduleJob(
     job: Omit<ScheduledJob, "attempts" | "status" | "createdAt">
   ): Promise<boolean> {
-    const result = await this.db
+    const result = await this.buildScheduleJobStatement(job).run();
+    return result.meta.changes === 1;
+  }
+
+  /**
+   * Schedule many jobs in a single D1 batch (one subrequest). Returns the
+   * number of newly inserted rows; PK collisions are silently ignored thanks
+   * to INSERT OR IGNORE, so the batch never aborts on duplicates.
+   *
+   * Cloudflare D1 caps batch size in the low thousands of statements; we
+   * chunk well below that to stay safe across plan tiers.
+   */
+  async scheduleJobsBatch(
+    jobs: Array<Omit<ScheduledJob, "attempts" | "status" | "createdAt">>
+  ): Promise<number> {
+    if (jobs.length === 0) return 0;
+
+    const CHUNK_SIZE = 500;
+    let inserted = 0;
+
+    for (let i = 0; i < jobs.length; i += CHUNK_SIZE) {
+      const chunk = jobs.slice(i, i + CHUNK_SIZE);
+      const stmts = chunk.map((job) => this.buildScheduleJobStatement(job));
+      const results = await this.db.batch(stmts);
+      inserted += results.reduce(
+        (sum, r) => sum + (r.meta.changes ?? 0),
+        0
+      );
+    }
+
+    return inserted;
+  }
+
+  private buildScheduleJobStatement(
+    job: Omit<ScheduledJob, "attempts" | "status" | "createdAt">
+  ): D1PreparedStatement {
+    return this.db
       .prepare(
         `
       INSERT OR IGNORE INTO scheduled_jobs (
@@ -44,10 +80,7 @@ export class JobScheduler {
         job.kickoffTime,
         job.timingOffset,
         job.scheduledTime
-      )
-      .run();
-
-    return result.meta.changes === 1;
+      );
   }
 
   /**
