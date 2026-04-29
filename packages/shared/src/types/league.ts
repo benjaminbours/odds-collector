@@ -38,6 +38,12 @@ export const LEAGUES: LeagueConfig[] = [
     providerKey: 'soccer_italy_serie_a',
     countryCode: 'it',
   },
+  {
+    id: 'world_cup_2026',
+    name: 'FIFA World Cup 2026',
+    providerKey: 'soccer_fifa_world_cup',
+    countryCode: 'world',
+  },
 ];
 
 /**

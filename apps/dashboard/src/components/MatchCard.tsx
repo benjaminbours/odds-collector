@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TIMING_ORDER } from '@odds-collector/shared';
 import type { MatchWithKey } from '@/lib/matches-db';
 import { toSlug } from '@/lib/url-utils';
 import '@/styles/match-card.css';
@@ -9,22 +10,19 @@ interface MatchCardProps {
   leagueName?: string;
 }
 
-const TIMING_ORDER = [
-  'opening',
-  'mid_week',
-  'day_before',
-  't_minus_4h',
-  't_minus_90m',
-  't_minus_30m',
-  'closing',
-];
 const TIMING_LABELS: Record<string, string> = {
+  t_minus_35d: '35d',
+  t_minus_28d: '28d',
+  t_minus_21d: '21d',
+  t_minus_14d: '14d',
   opening: 'O',
   mid_week: 'M',
   day_before: 'D',
   t_minus_4h: '4h',
   t_minus_90m: '90',
+  t_minus_60m: '60',
   t_minus_30m: '30',
+  t_minus_15m: '15',
   closing: 'C',
 };
 

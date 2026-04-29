@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { TIMING_ORDER } from "@odds-collector/shared";
 import { toSlug } from "@/lib/url-utils";
 import { groupMatchesByDate, type MatchWithKey } from "@/lib/matches-db";
 import "@/styles/date-grouped-matches.css";
@@ -11,33 +12,35 @@ interface DateGroupedMatchesProps {
   leagueId: string;
 }
 
-const TIMING_ORDER = [
-  "opening",
-  "mid_week",
-  "day_before",
-  "t_minus_4h",
-  "t_minus_90m",
-  "t_minus_30m",
-  "closing",
-];
-
 const TIMING_LABELS: Record<string, string> = {
+  t_minus_35d: "35d",
+  t_minus_28d: "28d",
+  t_minus_21d: "21d",
+  t_minus_14d: "14d",
   opening: "W",
   mid_week: "M",
   day_before: "D",
   t_minus_4h: "4h",
   t_minus_90m: "90",
+  t_minus_60m: "60",
   t_minus_30m: "30",
+  t_minus_15m: "15",
   closing: "C",
 };
 
 const TIMING_FULL_LABELS: Record<string, string> = {
+  t_minus_35d: "T-35d",
+  t_minus_28d: "T-28d",
+  t_minus_21d: "T-21d",
+  t_minus_14d: "T-14d",
   opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
   t_minus_4h: "T-4h",
   t_minus_90m: "T-90m",
+  t_minus_60m: "T-60m",
   t_minus_30m: "T-30m",
+  t_minus_15m: "T-15m",
   closing: "Closing",
 };
 

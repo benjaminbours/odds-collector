@@ -35,7 +35,7 @@ import {
   OddsSnapshot,
   BookmakerMarket,
 } from "@odds-collector/shared";
-import { LEAGUES, CURRENT_SEASON } from "@odds-collector/shared";
+import { LEAGUES, CURRENT_SEASON, TIMING_ORDER } from "@odds-collector/shared";
 
 // Configuration from environment variables
 const CONFIG = {
@@ -53,17 +53,9 @@ const FORCE = args.includes("--force");
 const LEAGUE_ARG = args.find((a) => a.startsWith("--league="));
 const SPECIFIC_LEAGUE = LEAGUE_ARG?.split("=")[1];
 
-// Steam move detection configuration
+// Steam move detection configuration. TIMING_ORDER is imported from
+// @odds-collector/shared so the curve stays in sync with the live detector.
 const STEAM_THRESHOLD = 5;
-const TIMING_ORDER = [
-  "opening",
-  "mid_week",
-  "day_before",
-  "t_minus_4h",
-  "t_minus_90m",
-  "t_minus_30m",
-  "closing",
-];
 
 const ALLOWED_MARKETS = [
   "h2h",

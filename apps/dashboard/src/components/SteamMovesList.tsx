@@ -42,6 +42,7 @@ const TIMING_LABELS: Record<string, string> = {
 const FLAG_EMOJIS: Record<string, string> = {
   "gb-eng": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
   it: "🇮🇹",
+  world: "🌍",
 };
 
 const OUTCOME_LABELS: Record<string, string> = {

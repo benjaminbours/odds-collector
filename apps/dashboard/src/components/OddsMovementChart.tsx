@@ -11,24 +11,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { OddsSnapshot, BookmakerOdds } from "@odds-collector/shared";
+import { TIMING_ORDER } from "@odds-collector/shared";
 import "@/styles/odds-movement-chart.css";
 
-const TIMING_ORDER = [
-  "opening",
-  "mid_week",
-  "day_before",
-  "t_minus_4h",
-  "t_minus_90m",
-  "t_minus_30m",
-  "closing",
-];
 const TIMING_LABELS: Record<string, string> = {
+  t_minus_35d: "T-35d",
+  t_minus_28d: "T-28d",
+  t_minus_21d: "T-21d",
+  t_minus_14d: "T-14d",
   opening: "Week Before",
   mid_week: "Mid Week",
   day_before: "Day Before",
   t_minus_4h: "T-4h",
   t_minus_90m: "T-90m",
+  t_minus_60m: "T-60m",
   t_minus_30m: "T-30m",
+  t_minus_15m: "T-15m",
   closing: "Closing",
 };
 

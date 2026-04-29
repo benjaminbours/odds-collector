@@ -11,6 +11,7 @@ interface LeagueCardProps {
 const FLAG_EMOJIS: Record<string, string> = {
   'gb-eng': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
   it: '🇮🇹',
+  world: '🌍',
 };
 
 export function LeagueCard({ league }: LeagueCardProps) {

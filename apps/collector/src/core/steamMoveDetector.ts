@@ -1,28 +1,10 @@
 import type { OddsSnapshot } from "@odds-collector/shared";
+import { TIMING_ORDER } from "@odds-collector/shared";
 import type { UpsertSteamMoveInput } from "./SteamMovesRepository";
 import { toPointKey } from "./SteamMovesRepository";
 
-// Ordered curve from earliest to latest. Detection chains snapshots by
-// looking at the immediately preceding entry (`getPrecedingTiming`); any
-// timing not present here will fire snapshots without triggering detection.
-// Tournament-only entries (t_minus_35d → t_minus_14d, t_minus_60m,
-// t_minus_15m) are inert for league play because no jobs are scheduled at
-// those timings, but they must be present so the World Cup preset can chain.
-export const TIMING_ORDER = [
-  "t_minus_35d",
-  "t_minus_28d",
-  "t_minus_21d",
-  "t_minus_14d",
-  "opening",
-  "mid_week",
-  "day_before",
-  "t_minus_4h",
-  "t_minus_90m",
-  "t_minus_60m",
-  "t_minus_30m",
-  "t_minus_15m",
-  "closing",
-] as const;
+// Re-exported for existing internal callers (e.g. populateSteamMoves script).
+export { TIMING_ORDER };
 
 export const STEAM_THRESHOLD = 5;
 

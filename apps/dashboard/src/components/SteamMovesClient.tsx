@@ -26,6 +26,7 @@ const TIMING_LABELS: Record<string, string> = {
 const FLAG_EMOJIS: Record<string, string> = {
   "gb-eng": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
   it: "🇮🇹",
+  world: "🌍",
 };
 
 function formatDateHeader(dateStr: string): string {

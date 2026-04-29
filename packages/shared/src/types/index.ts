@@ -4,3 +4,4 @@ export * from './match';
 export * from './league';
 export * from './value-bet';
 export * from './steam-move';
+export * from './timing';
