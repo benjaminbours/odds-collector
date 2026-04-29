@@ -257,15 +257,7 @@ export class OddsCollector {
 
             const jobId = generateJobId(event.id, timing.name);
 
-            // Check if job already exists
-            const existingJob = await this.scheduler.getJob(jobId);
-            if (existingJob) {
-              console.log("Job already scheduled:", jobId);
-              continue; // Already scheduled
-            }
-
-            // Schedule the job
-            await this.scheduler.scheduleJob({
+            const inserted = await this.scheduler.scheduleJob({
               id: jobId,
               leagueId: league.id,
               eventId: event.id,
@@ -277,7 +269,11 @@ export class OddsCollector {
               scheduledTime,
             });
 
-            totalJobsScheduled++;
+            if (inserted) {
+              totalJobsScheduled++;
+            } else {
+              console.log("Job already scheduled:", jobId);
+            }
           }
         }
 

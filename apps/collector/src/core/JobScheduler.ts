@@ -19,15 +19,16 @@ export class JobScheduler {
   }
 
   /**
-   * Schedule a new job
+   * Schedule a new job. Returns true if a new row was inserted, false if a
+   * job with the same id already existed (PK collision silently ignored).
    */
   async scheduleJob(
     job: Omit<ScheduledJob, "attempts" | "status" | "createdAt">
-  ): Promise<void> {
-    await this.db
+  ): Promise<boolean> {
+    const result = await this.db
       .prepare(
         `
-      INSERT INTO scheduled_jobs (
+      INSERT OR IGNORE INTO scheduled_jobs (
         id, league_id, event_id, home_team, away_team, match_date,
         kickoff_time, timing_offset, scheduled_time, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -45,6 +46,8 @@ export class JobScheduler {
         job.scheduledTime
       )
       .run();
+
+    return result.meta.changes === 1;
   }
 
   /**
